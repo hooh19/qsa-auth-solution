@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QSA (Quantum Safe API) - JWT 기반 이중 인증 시스템</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">QSA</div>
+            <ul class="nav-menu">
+                <li><a href="#overview" class="nav-link">개요</a></li>
+                <li><a href="#features" class="nav-link">특장점</a></li>
+                <li><a href="#architecture" class="nav-link">구조도</a></li>
+                <li><a href="#process" class="nav-link">프로세스</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">QSA</span>
+                <span class="title-subtitle">Quantum Safe API</span>
+            </h1>
+            <p class="hero-description">
+                매체 인증 서명(wSafeBox X 양자암호화) 와 JWT 토큰을 결합한 이중 안전 API 인증 솔루션으로<br>
+                보안성과 확장성을 동시에 확보합니다.
+            </p>
+            <div class="hero-buttons">
+                <a href="#overview" class="btn btn-primary">솔루션 알아보기</a>
+                <a href="#process" class="btn btn-secondary">프로세스 보기</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse"></div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="section overview-section" id="overview">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2 class="section-title">QSA 솔루션 개요</h2>
+                <p class="section-description">
+                    Quantum Safe API - 매체 인증 서명(wSafeBox X 양자암호화) 와 JWT 토큰을 결합한 이중 안전 API 인증 솔루션
+                </p>
+            </div>
+            
+            <div class="overview-content">
+                <div class="overview-card">
+                    <div class="card-icon">🔐</div>
+                    <h3>이중 인증 메커니즘</h3>
+                    <p>JWT 토큰 검증과 서명 검증을 통한 강력한 보안</p>
+                </div>
+                <div class="overview-card">
+                    <div class="card-icon">🔑</div>
+                    <h3>비대칭 암호화</h3>
+                    <p>Private Key와 Public Key를 활용한 안전한 인증</p>
+                </div>
+                <div class="overview-card">
+                    <div class="card-icon">🌐</div>
+                    <h3>클라이언트 키 관리</h3>
+                    <p>WSB를 통한 브라우저 내 안전한 키 생성 및 관리</p>
+                </div>
+                <div class="overview-card">
+                    <div class="card-icon">🔗</div>
+                    <h3>JWKS 공개키 관리</h3>
+                    <p>표준 기반의 효율적인 공개키 관리 시스템</p>
+                </div>
+            </div>
+
+            <div class="components-section">
+                <h3 class="components-title">주요 구성 요소</h3>
+                <div class="components-grid">
+                    <div class="component-item">
+                        <div class="component-badge">Client</div>
+                        <h4>Client (Browser) + WSB</h4>
+                        <p>키 쌍 생성, 서명 생성, 토큰 저장</p>
+                    </div>
+                    <div class="component-item">
+                        <div class="component-badge">Server</div>
+                        <h4>하나원큐서버 + APIAuth Agent</h4>
+                        <p>토큰 검증, 서명 검증</p>
+                    </div>
+                    <div class="component-item">
+                        <div class="component-badge">Auth</div>
+                        <h4>은행 인증센터</h4>
+                        <p>현 인증센터 연동하여 토큰 발급 중개</p>
+                    </div>
+                    <div class="component-item">
+                        <div class="component-badge">JWT</div>
+                        <h4>APIAuth Server</h4>
+                        <p>JWT 발급 및 관리, JWKS 제공</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section features-section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2 class="section-title">QSA 솔루션 특장점</h2>
+                <p class="section-description">
+                    기존 Session 인증 대비 우수한 성능과 보안성
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3>이중 인증 메커니즘</h3>
+                    <p>JWT 토큰 검증과 서명 검증을 통한 다층 보안</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3>비대칭 암호화 기반</h3>
+                    <p> PQC(Post-Quantum Cryptography) 알고리즘을 활용한 강력한 암호화</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3>클라이언트 키 관리</h3>
+                    <p>WSB를 통한 안전한 키 생성 및 저장</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3>검증(APIAuth Agent lib)</h3>
+                    <p>토큰 및 서명 검증을 통한 안전한 API 호출 보장</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3>토큰 위조 방지</h3>
+                    <p>API 원문 서명(whiteBox) 검증(APIAuth Agent lib)을 통한 재전송 공격 차단</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3>Stateless 아키텍처</h3>
+                    <p>서버 부하 최소화 및 수평 확장 용이</p>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="comparison-section">
+                <h3 class="comparison-title">기존 Session 인증 대비 장점</h3>
+                <div class="comparison-table">
+                    <div class="comparison-header">
+                        <div class="comparison-cell header-cell">비교 항목</div>
+                        <div class="comparison-cell header-cell session">Session 인증</div>
+                        <div class="comparison-cell header-cell solution">본 솔루션</div>
+                    </div>
+                    <div class="comparison-row">
+                        <div class="comparison-cell row-header">상태 관리</div>
+                        <div class="comparison-cell">
+                            <span class="badge negative">서버 측 세션 저장소 필요</span>
+                            <p>메모리/DB 부하 발생</p>
+                        </div>
+                        <div class="comparison-cell">
+                            <span class="badge positive">Stateless JWT 방식</span>
+                            <p>서버 부하 최소화</p>
+                        </div>
+                    </div>
+                    <div class="comparison-row">
+                        <div class="comparison-cell row-header">확장성</div>
+                        <div class="comparison-cell">
+                            <span class="badge negative">서버 간 세션 공유 필요</span>
+                            <p>복잡한 인프라 구성</p>
+                        </div>
+                        <div class="comparison-cell">
+                            <span class="badge positive">서버 독립적 동작</span>
+                            <p>수평 확장 용이</p>
+                        </div>
+                    </div>
+                    <div class="comparison-row">
+                        <div class="comparison-cell row-header">보안성</div>
+                        <div class="comparison-cell">
+                            <span class="badge negative">쿠키 탈취 시 위험</span>
+                            <p>세션 하이재킹 가능</p>
+                        </div>
+                        <div class="comparison-cell">
+                            <span class="badge positive">서명 검증 필수</span>
+                            <p>재전송 공격 방지</p>
+                        </div>
+                    </div>
+                    <div class="comparison-row">
+                        <div class="comparison-cell row-header">모바일/SPA 지원<br><span style="font-size: 0.8em; font-weight: normal; color: #999;">(SPA: Single Page Application)</span></div>
+                        <div class="comparison-cell">
+                            <span class="badge negative">쿠키 기반 제한</span>
+                            <p>모바일 앱 및 SPA에서 CORS 설정 복잡</p>
+                        </div>
+                        <div class="comparison-cell">
+                            <span class="badge positive">토큰 기반 지원</span>
+                            <p>모바일 앱, SPA, 웹앱 모든 클라이언트 타입 지원</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="section architecture-section" id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2 class="section-title">소프트웨어 구조도</h2>
+                <p class="section-description">
+                    시스템 구성 요소와 상호 작용 관계
+                </p>
+            </div>
+
+            <div class="architecture-diagram">
+                <div class="arch-layer">
+                    <div class="arch-box client-box">
+                        <div class="arch-box-header">
+                            <h3>Client (Browser)</h3>
+                        </div>
+                        <div class="arch-box-content">
+                            <div class="arch-sub-box">
+                                <h4>WSB</h4>
+                                <p>Web Security Box</p>
+                                <ul>
+                                    <li>키 쌍 생성/관리</li>
+                                    <li>서명 생성</li>
+                                    <li>APIAuthToken 저장</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-arrow">↓ HTTPS</div>
+
+                <div class="arch-layer">
+                    <div class="arch-box server-box">
+                        <div class="arch-box-header">
+                            <h3>하나원큐서버</h3>
+                            <p>Hana OneQ Server</p>
+                        </div>
+                        <div class="arch-box-content">
+                            <div class="arch-sub-box">
+                                <h4>APIAuth Agent lib</h4>
+                                <ul>
+                                    <li>토큰 검증</li>
+                                    <li>서명 검증</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-branch">
+                    <div class="arch-arrow branch-left">↓</div>
+                    <div class="arch-arrow branch-right">↓</div>
+                </div>
+
+                <div class="arch-layer arch-layer-split">
+                    <div class="arch-box auth-box">
+                        <div class="arch-box-header">
+                            <h3>은행 인증센터</h3>
+                        </div>
+                        <div class="arch-box-content">
+                            <ul>
+                                <li>인증 검증</li>
+                                <li>토큰 중개</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="arch-box jwt-box">
+                        <div class="arch-box-header">
+                            <h3>APIAuth Server</h3>
+                        </div>
+                        <div class="arch-box-content">
+                            <ul>
+                                <li>JWT 생성</li>
+                                <li>JWKS 관리</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section class="section process-section" id="process">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2 class="section-title">프로세스 설명서</h2>
+                <p class="section-description">
+                    초기 인증부터 API 호출까지의 전체 프로세스
+                </p>
+            </div>
+
+            <!-- Process Flow Diagram -->
+            <div class="process-flow-container">
+                <img src="qsaAuthAPI .png" alt="API 인증 프로세스 다이어그램" class="process-diagram">
+            </div>
+
+            <!-- Phase 1 -->
+            <div class="phase-section">
+                <div class="phase-header">
+                    <h3 class="phase-title">Phase 1: 초기 인증 토큰 발급</h3>
+                    <span class="phase-badge">1-9단계</span>
+                </div>
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>매체 인증용 키 쌍 생성</h4>
+                            <p>클라이언트가 WSB를 통해 매체 인증용 Private Key와 Public Key를 생성합니다.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>인증 요청</h4>
+                            <p>클라이언트 → 하나원큐서버: 인증 요청 (매체 인증용 Public Key 포함)</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>인증 요청 전달</h4>
+                            <p>하나원큐서버 → 은행 인증센터: 인증 요청 전달</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>인증 검증</h4>
+                            <p>은행 인증센터에서 인증 검증을 수행합니다.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h4>APIAuthToken 발급 요청</h4>
+                            <p>은행 인증센터 → APIAuth Server: APIAuthToken 발급 요청 (API 인증용 Public Key 포함)</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h4>JWT 기반 APIAuthToken 생성</h4>
+                            <p>APIAuth Server가 JWT 기반 APIAuthToken을 생성합니다. JWT Payload에는 매체 인증용 Public Key가 포함됩니다.</p>
+                            <div class="step-note">참조: JWT 공개키는 JWKS 형태로 저장되며, URL은 JWT 헤더에서 참조됩니다.</div>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">7-8</div>
+                        <div class="step-content">
+                            <h4>APIAuthToken 전달</h4>
+                            <p>APIAuth Server → 은행 인증센터 → 하나원큐서버 → Client: 토큰 전달</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">9</div>
+                        <div class="step-content">
+                            <h4>APIAuthToken 저장</h4>
+                            <p>클라이언트가 전달받은 APIAuthToken을 WSB 내에 저장합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="phase-section">
+                <div class="phase-header">
+                    <h3 class="phase-title">Phase 2: API 호출 시 이중 서명 검증</h3>
+                    <span class="phase-badge">10-13단계</span>
+                </div>
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-number">10</div>
+                        <div class="step-content">
+                            <h4>API 파라미터 서명 생성</h4>
+                            <p>클라이언트(브라우저)가 API를 호출할 때, 전송할 JSON 형태의 API 파라미터(POST, GET 등)를 WSB의 개인키(Private Key)로 서명합니다.</p>
+                            <div class="step-note">
+                                <strong>서명 과정:</strong><br>
+                                1. API 요청 파라미터를 JSON 형태로 구성<br>
+                                2. WSB가 저장된 매체 인증용 Private Key로 JSON 데이터 서명<br>
+                                3. 생성된 서명값을 JSON에 추가 파라미터로 포함
+                            </div>
+                            <div class="code-example">
+                                <strong>예시:</strong><br>
+                                <code>
+                                {<br>
+                                &nbsp;&nbsp;"accountId": "12345",<br>
+                                &nbsp;&nbsp;"amount": 10000,<br>
+                                &nbsp;&nbsp;"signature": "생성된_서명값"<br>
+                                }
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">11</div>
+                        <div class="step-content">
+                            <h4>API 요청 전송</h4>
+                            <p>클라이언트 → 하나원큐서버: API 요청 전송</p>
+                            <div class="step-note">
+                                <strong>전송 내용:</strong><br>
+                                • HTTP Header: <code>Authorization: Bearer &lt;APIAuthToken&gt;</code><br>
+                                • HTTP Body: JSON 파라미터 (서명값 포함)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">12</div>
+                        <div class="step-content">
+                            <h4>1차 검증: JWT 토큰 검증</h4>
+                            <p>하나원큐서버의 APIAuth Agent lib가 HTTP Header의 JWT 토큰(APIAuthToken)을 검증합니다.</p>
+                            <div class="step-note">
+                                <strong>검증 과정:</strong><br>
+                                1. APIAuth Server의 공개키(Public Key)로 JWT 토큰 복호화<br>
+                                2. JWT의 유효성 검증 (만료 시간, 서명 등)<br>
+                                3. JWT Payload에서 매체 인증용 Public Key 추출
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">13</div>
+                        <div class="step-content">
+                            <h4>2차 검증: 서명값 검증 (파라미터 위변조 검증)</h4>
+                            <p>APIAuth Agent lib가 API JSON에 포함된 서명값을 검증하여 전달받은 파라미터의 위변조 여부를 확인합니다.</p>
+                            <div class="step-note">
+                                <strong>검증 과정:</strong><br>
+                                1. JWT Payload에서 추출한 매체 인증용 Public Key 사용<br>
+                                2. API JSON에서 서명값 제외한 원본 데이터 추출<br>
+                                3. Public Key로 서명값 복호화하여 원본 데이터와 비교<br>
+                                4. 일치 여부로 파라미터 위변조 검증
+                            </div>
+                            <div class="step-note highlight">
+                                <strong>이중 검증의 핵심:</strong><br>
+                                • 1차: JWT 토큰 검증 → 사용자 인증 확인<br>
+                                • 2차: 서명값 검증 → API 파라미터 무결성 확인<br>
+                                • 두 검증 모두 통과해야 API 호출 허용
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Mechanism -->
+            <div class="security-section">
+                <h3 class="security-title">이중 서명 검증 메커니즘</h3>
+                <div class="security-cards">
+                    <div class="security-card">
+                        <div class="security-icon">1</div>
+                        <h4>1차 검증: APIAuthToken (JWT) 검증</h4>
+                        <ul>
+                            <li><strong>목적:</strong> 클라이언트가 인증된 사용자인지 확인</li>
+                            <li><strong>방법:</strong> HTTP Header의 JWT 토큰을 APIAuth Server의 Public Key로 복호화</li>
+                            <li><strong>검증 항목:</strong> JWT 서명 유효성, 만료 시간, 발급자 확인</li>
+                            <li><strong>결과:</strong> JWT Payload에서 매체 인증용 Public Key 추출</li>
+                        </ul>
+                        <div class="security-detail">
+                            <strong>검증 과정:</strong><br>
+                            <code>
+                            Header: Authorization: Bearer &lt;JWT_TOKEN&gt;<br>
+                            → APIAuth Server Public Key로 복호화<br>
+                            → JWT 유효성 검증<br>
+                            → Payload에서 매체 인증용 Public Key 추출
+                            </code>
+                        </div>
+                    </div>
+                    <div class="security-card">
+                        <div class="security-icon">2</div>
+                        <h4>2차 검증: API 파라미터 서명값 검증</h4>
+                        <ul>
+                            <li><strong>목적:</strong> API 호출이 해당 클라이언트에서 발생했는지 및 파라미터 위변조 여부 확인</li>
+                            <li><strong>방법:</strong> API JSON에 포함된 서명값을 JWT Payload의 Public Key로 검증</li>
+                            <li><strong>검증 항목:</strong> 서명값 유효성, 원본 데이터와의 일치 여부</li>
+                            <li><strong>결과:</strong> 파라미터 무결성 확인 및 재전송 공격 방지</li>
+                        </ul>
+                        <div class="security-detail">
+                            <strong>검증 과정:</strong><br>
+                            <code>
+                            Body: { "accountId": "12345", "amount": 10000, "signature": "..." }<br>
+                            → 서명값 제외한 원본 데이터 추출<br>
+                            → JWT Payload의 Public Key로 서명값 복호화<br>
+                            → 원본 데이터와 비교하여 위변조 검증
+                            </code>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-summary">
+                    <h4>이중 검증의 보안 효과</h4>
+                    <div class="security-benefits">
+                        <div class="benefit-item">
+                            <strong>✓ 재전송 공격 방지</strong>
+                            <p>토큰만 탈취해도 서명값이 없으면 API 호출 불가</p>
+                        </div>
+                        <div class="benefit-item">
+                            <strong>✓ 파라미터 위변조 방지</strong>
+                            <p>서명값 검증으로 전송 중 데이터 변조 탐지</p>
+                        </div>
+                        <div class="benefit-item">
+                            <strong>✓ 클라이언트 인증 강화</strong>
+                            <p>Private Key 소유 여부로 실제 클라이언트 확인</p>
+                        </div>
+                        <div class="benefit-item">
+                            <strong>✓ 양자 안전 암호화</strong>
+                            <p>PQC 알고리즘으로 미래 양자 컴퓨터 공격에도 안전</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tech Stack -->
+            <div class="tech-stack-section">
+                <h3 class="tech-stack-title">기술 스택</h3>
+                <div class="tech-items">
+                    <div class="tech-item">
+                        <div class="tech-icon">🔐</div>
+                        <h4>JWT</h4>
+                        <p>JSON Web Token<br>인증 토큰 표준</p>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🔑</div>
+                        <h4>JWKS</h4>
+                        <p>JSON Web Key Set<br>공개키 관리 표준</p>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🛡️</div>
+                        <h4>비대칭 암호화</h4>
+                        <p>PQC(Post-Quantum Cryptography) <br>키 쌍 기반 서명/검증</p>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">📦</div>
+                        <h4>WSB</h4>
+                        <p>Web Security Box<br>브라우저 내 보안 모듈</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 QSA (Quantum Safe API). All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
