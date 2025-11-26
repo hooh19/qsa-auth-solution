@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +8,10 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
@@ -40,10 +43,13 @@
                 매체 인증 서명(wSafeBox X 양자내성암호화) 와 Stateless 토큰 아키텍쳐을 결합한 이중 안전 API 인증 솔루션으로<br>
                 보안성과 확장성을 동시에 확보합니다.
             </p>
-            <div class="hero-buttons">
-                <a href="#overview" class="btn btn-primary">솔루션 알아보기</a>
-                <a href="#process" class="btn btn-secondary">프로세스 보기</a>
-            </div>
+            <a href="#overview" class="btn btn-primary">솔루션 알아보기</a>
+            <a href="#process" class="btn btn-secondary">프로세스 보기</a>
+            <a href="qsa-demo.html" class="btn btn-primary"
+                style="background: #0066cc; border-color: #0066cc; color: white;">QSA 프로세스 체험</a>
+            <a href="replay-attack-prevention-demo.html" class="btn btn-primary"
+                style="background: #2ecc71; border-color: #2ecc71;">Replay Attack 방어 시연</a>
+        </div>
         </div>
         <div class="scroll-indicator">
             <div class="mouse"></div>
@@ -60,7 +66,7 @@
                     Quantum Safe API - 매체 인증 서명(wSafeBox X 양자내성암호화) 와 Stateless 토큰 아키텍쳐을 결합한 이중 안전 API 인증 솔루션
                 </p>
             </div>
-            
+
             <div class="overview-content">
                 <div class="overview-card">
                     <div class="card-icon">🔐</div>
@@ -202,7 +208,9 @@
                         </div>
                     </div>
                     <div class="comparison-row">
-                        <div class="comparison-cell row-header">모바일/SPA 지원<br><span style="font-size: 0.8em; font-weight: normal; color: #999;">(SPA: Single Page Application)</span></div>
+                        <div class="comparison-cell row-header">모바일/SPA 지원<br><span
+                                style="font-size: 0.8em; font-weight: normal; color: #999;">(SPA: Single Page
+                                Application)</span></div>
                         <div class="comparison-cell">
                             <span class="badge negative">쿠키 기반 제한</span>
                             <p>모바일 앱 및 SPA에서 CORS 설정 복잡</p>
@@ -478,7 +486,8 @@
                         <div class="step-number">10</div>
                         <div class="step-content">
                             <h4>API 파라미터 서명 생성</h4>
-                            <p>클라이언트(브라우저)가 API를 호출할 때, 전송할 JSON 형태의 API 파라미터(POST, GET 등)를 WebSafeBox의 개인키(Private Key)로 서명합니다.</p>
+                            <p>클라이언트(브라우저)가 API를 호출할 때, 전송할 JSON 형태의 API 파라미터(POST, GET 등)를 WebSafeBox의 개인키(Private
+                                Key)로 서명합니다.</p>
                             <div class="step-note">
                                 <strong>서명 과정:</strong><br>
                                 1. API 요청 파라미터를 JSON 형태로 구성<br>
@@ -623,5 +632,5 @@
 
     <script src="script.js"></script>
 </body>
-</html>
 
+</html>

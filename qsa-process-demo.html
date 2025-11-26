@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QSA - 프로세스 체험</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #9b59b6;
+            --primary-dark: #8e44ad;
+            --primary-light: #a569bd;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --border-color: #ecf0f1;
+            --gradient-primary: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--gradient-primary);
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: var(--bg-light);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flow-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-top: 30px;
+            position: relative;
+        }
+
+        .flow-box {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .flow-box.client {
+            border-color: var(--secondary-color);
+        }
+
+        .flow-box.server {
+            border-color: var(--primary-color);
+        }
+
+        .flow-box.wsafebox {
+            border-color: var(--success-color);
+        }
+
+        .box-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .box-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .box-desc {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .arrow-connector {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #bdc3c7;
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .step-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .step-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .step-item.active {
+            opacity: 1;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transform: scale(1.02);
+            font-weight: 600;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            background: var(--gradient-primary);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+        }
+
+        .status-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2c3e50;
+            color: #2ecc71;
+            font-family: monospace;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animation classes */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .highlight {
+            animation: pulse 0.5s;
+            border-color: var(--accent-color) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>QSA 프로세스 체험</h1>
+            <p>Quantum Safe API 인증의 핵심 흐름을 경험해보세요</p>
+        </div>
+
+        <div class="content">
+            <!-- Phase 1 -->
+            <div class="section" id="phase1">
+                <div class="section-title">
+                    <span
+                        style="background:var(--primary-color); color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem;">1</span>
+                    Phase 1: 초기 인증 토큰 발급
+                </div>
+                <p style="margin-bottom:20px; color:var(--text-light);">
+                    클라이언트가 WebSafeBox를 통해 키 쌍을 생성하고, 서버로부터 JWT 기반의 APIAuthToken을 발급받아 안전하게 저장합니다.
+                </p>
+
+                <div class="flow-container">
+                    <div class="arrow-connector"></div>
+
+                    <div class="flow-box wsafebox" id="p1-wsafebox">
+                        <div class="box-icon">🔐</div>
+                        <div class="box-title">wSafeBox</div>
+                        <div class="step-list">
+                            <div class="step-item" id="p1-s1">1. 매체 인증용 키 쌍 생성</div>
+                            <div class="step-item" id="p1-s9">9. APIAuthToken 저장</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-box client" id="p1-client">
+                        <div class="box-icon">👤</div>
+                        <div class="box-title">Client</div>
+                        <div class="step-list">
+                            <div class="step-item" id="p1-s2">2. 인증 요청 (Public Key 포함)</div>
+                            <div class="step-item" id="p1-s7">7-8. APIAuthToken 수신</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-box server" id="p1-server">
+                        <div class="box-icon">🏢</div>
+                        <div class="box-title">Server</div>
+                        <div class="step-list">
+                            <div class="step-item" id="p1-s3">3~5. 인증 및 토큰 발급 요청</div>
+                            <div class="step-item" id="p1-s6">6. JWT 기반 APIAuthToken 생성</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin-top:30px;">
+                    <button class="btn" id="btn-phase1" onclick="runPhase1()">1단계 시작: 토큰 발급</button>
+                    <div class="status-display" id="status-phase1">대기 중...</div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="section" id="phase2" style="opacity:0.5; pointer-events:none;">
+                <div class="section-title">
+                    <span
+                        style="background:var(--secondary-color); color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem;">2</span>
+                    Phase 2: API 호출 시 이중 서명 검증
+                </div>
+                <p style="margin-bottom:20px; color:var(--text-light);">
+                    API 호출 시, wSafeBox의 개인키로 서명하여 전송하며, 서버는 JWT 토큰과 서명값을 모두 검증합니다.
+                </p>
+
+                <div class="flow-container">
+                    <div class="arrow-connector"></div>
+
+                    <div class="flow-box wsafebox" id="p2-wsafebox">
+                        <div class="box-icon">🔐</div>
+                        <div class="box-title">wSafeBox</div>
+                        <div class="step-list">
+                            <div class="step-item" id="p2-s10">10. API 파라미터 서명 생성</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-box client" id="p2-client">
+                        <div class="box-icon">📤</div>
+                        <div class="box-title">Client</div>
+                        <div class="step-list">
+                            <div class="step-item" id="p2-s11">11. API 요청 전송</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-box server" id="p2-server">
+                        <div class="box-icon">🛡️</div>
+                        <div class="box-title">Server</div>
+                        <div class="step-list">
+                            <div class="step-item" id="p2-s12">12. 1차 검증: JWT 토큰 검증</div>
+                            <div class="step-item" id="p2-s13">13. 2차 검증: 서명값 검증</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin-top:30px;">
+                    <button class="btn" id="btn-phase2" onclick="runPhase2()"
+                        style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">2단계 시작: API 호출</button>
+                    <div class="status-display" id="status-phase2">1단계 완료 후 가능합니다.</div>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:40px;">
+                <a href="index.html"
+                    style="color:var(--text-light); text-decoration:none; border-bottom:1px solid var(--text-light);">메인으로
+                    돌아가기</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function runPhase1() {
+            const btn = document.getElementById('btn-phase1');
+            const status = document.getElementById('status-phase1');
+            btn.disabled = true;
+            status.textContent = "Phase 1 프로세스 시작...";
+
+            // Step 1
+            highlight('p1-wsafebox', 'p1-s1');
+            status.textContent = "1. wSafeBox: 매체 인증용 키 쌍(Private/Public Key)을 생성합니다.";
+            await sleep(1200);
+
+            // Step 2
+            highlight('p1-client', 'p1-s2');
+            status.textContent = "2. Client: 서버에 인증 요청을 보냅니다 (Public Key 포함).";
+            await sleep(1200);
+
+            // Step 3-5
+            highlight('p1-server', 'p1-s3');
+            status.textContent = "3~5. Server: 인증 요청 전달, 검증 및 토큰 발급 요청을 처리합니다.";
+            await sleep(1500);
+
+            // Step 6
+            highlight('p1-server', 'p1-s6');
+            status.textContent = "6. Server: JWT 기반 APIAuthToken을 생성합니다 (Payload에 Public Key 포함).";
+            await sleep(1200);
+
+            // Step 7-8
+            highlight('p1-client', 'p1-s7');
+            status.textContent = "7-8. Client: 발급된 APIAuthToken을 수신합니다.";
+            await sleep(1000);
+
+            // Step 9
+            highlight('p1-wsafebox', 'p1-s9');
+            status.textContent = "9. wSafeBox: APIAuthToken을 보안 영역에 안전하게 저장합니다.";
+            await sleep(1200);
+
+            status.innerHTML = "✅ Phase 1 완료: 초기 인증 토큰 발급 성공";
+            status.style.color = "#2ecc71";
+
+            // Enable Phase 2
+            document.getElementById('phase2').style.opacity = "1";
+            document.getElementById('phase2').style.pointerEvents = "auto";
+            document.getElementById('status-phase2').textContent = "준비 완료";
+        }
+
+        async function runPhase2() {
+            const btn = document.getElementById('btn-phase2');
+            const status = document.getElementById('status-phase2');
+            btn.disabled = true;
+
+            // Step 10
+            highlight('p2-wsafebox', 'p2-s10');
+            status.textContent = "10. wSafeBox: API 파라미터를 개인키로 서명하여 서명값을 생성합니다.";
+            await sleep(1200);
+
+            // Step 11
+            highlight('p2-client', 'p2-s11');
+            status.textContent = "11. Client: API 요청을 전송합니다 (Header: Token, Body: Signature).";
+            await sleep(1200);
+
+            // Step 12
+            highlight('p2-server', 'p2-s12');
+            status.textContent = "12. Server [1차 검증]: JWT 토큰의 유효성을 검증합니다.";
+            await sleep(1200);
+
+            // Step 13
+            highlight('p2-server', 'p2-s13');
+            status.textContent = "13. Server [2차 검증]: 서명값을 검증하여 파라미터 위변조를 확인합니다.";
+            await sleep(1200);
+
+            status.innerHTML = "✅ Phase 2 완료: 이중 서명 검증 통과 (API 호출 성공)";
+            status.style.color = "#2ecc71";
+        }
+
+        function highlight(boxId, stepId) {
+            // Reset previous highlights in this section
+            const section = document.getElementById(stepId).closest('.section');
+            section.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+            section.querySelectorAll('.flow-box').forEach(el => el.classList.remove('highlight'));
+
+            document.getElementById(boxId).classList.add('highlight');
+            document.getElementById(stepId).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

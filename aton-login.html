@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ATON - 양자암호 기반 보안 로그인</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -58,6 +60,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -80,15 +83,18 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
             animation: pulse 3s ease-in-out infinite;
         }
 
         @keyframes pulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
                 opacity: 0.5;
             }
+
             50% {
                 transform: scale(1.1);
                 opacity: 0.8;
@@ -299,6 +305,7 @@
                 opacity: 0;
                 transform: translateY(-5px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -438,7 +445,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .login-button.loading .loading-spinner {
@@ -467,9 +476,19 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
         }
 
         @media (max-width: 480px) {
@@ -491,12 +510,13 @@
         }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <div class="login-header">
             <div class="logo-container">
                 <img src="aton-logo.png" alt="ATON" class="logo-image" onerror="this.style.display='none'">
-             
+
             </div>
             <div class="tagline">Quantum Safe Guard</div>
             <div class="quantum-badge">🔐 양자암호 기반 보안</div>
@@ -542,14 +562,8 @@
                     <label class="form-label" for="certificatePin">인증서 PIN</label>
                     <div class="input-wrapper">
                         <span class="input-icon">🔑</span>
-                        <input 
-                            type="password" 
-                            id="certificatePin" 
-                            class="form-input" 
-                            placeholder="인증서 PIN을 입력하세요"
-                            maxlength="6"
-                            autocomplete="off"
-                        >
+                        <input type="password" id="certificatePin" class="form-input" placeholder="인증서 PIN을 입력하세요"
+                            maxlength="6" autocomplete="off">
                         <button type="button" class="password-toggle" id="pinToggle">
                             👁️
                         </button>
@@ -571,7 +585,7 @@
                     <span>양자암호 보안 기술</span>
                 </div>
                 <div class="quantum-info-text">
-                    ATON은 Post-Quantum Cryptography(PQC) 알고리즘을 사용하여 
+                    ATON은 Post-Quantum Cryptography(PQC) 알고리즘을 사용하여
                     양자 컴퓨터 시대에도 안전한 인증을 제공합니다.
                 </div>
             </div>
@@ -598,19 +612,19 @@
             item.addEventListener('click', () => {
                 // 기존 선택 해제
                 certificateItems.forEach(cert => cert.classList.remove('selected'));
-                
+
                 // 현재 항목 선택
                 item.classList.add('selected');
                 const certId = item.getAttribute('data-cert');
                 selectedCertificateInput.value = certId;
-                
+
                 // PIN 입력 필드 표시
                 pinGroup.style.display = 'block';
                 certificatePin.focus();
-                
+
                 // 로그인 버튼 활성화
                 loginButton.disabled = false;
-                
+
                 // 에러 메시지 숨기기
                 errorMessage.classList.remove('show');
             });
@@ -642,7 +656,7 @@
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const selectedCert = selectedCertificateInput.value;
             const pin = certificatePin.value;
 
@@ -676,12 +690,12 @@
             // 양자암호 기반 인증서 인증 시뮬레이션
             try {
                 await simulateCertificateAuth(selectedCert, pin, authDuration);
-                
+
                 // 로그인 성공
                 setTimeout(() => {
                     showSuccessPage(authDuration);
                 }, authDuration * 1000);
-                
+
             } catch (error) {
                 // 로그인 실패
                 stopAuthTimer();
@@ -708,7 +722,7 @@
             }
 
             authTimerValue.textContent = '0.00';
-            
+
             timerInterval = setInterval(() => {
                 elapsed += increment;
                 if (elapsed >= duration) {
@@ -735,8 +749,8 @@
                 setTimeout(() => {
                     // 데모용: PIN이 123456 또는 1111이면 성공
                     if (pin === '123456' || pin === '1111') {
-                        resolve({ 
-                            success: true, 
+                        resolve({
+                            success: true,
                             token: 'quantum-cert-token-' + Date.now(),
                             certificate: certId
                         });
@@ -751,7 +765,7 @@
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.classList.add('show');
-            
+
             // 입력 필드 흔들기 효과
             loginForm.style.animation = 'shake 0.5s ease';
             setTimeout(() => {
@@ -820,25 +834,29 @@
                                 <span>보안 세션 활성화</span>
                             </div>
                             <div class="quantum-info-text">
-                                ${certType === 'PQC' 
-                                    ? 'PQC 알고리즘으로 보호된 안전한 세션이 시작되었습니다.' 
-                                    : 'RSA 알고리즘으로 보호된 안전한 세션이 시작되었습니다.'}
+                                ${certType === 'PQC'
+                    ? 'PQC 알고리즘으로 보호된 안전한 세션이 시작되었습니다.'
+                    : 'RSA 알고리즘으로 보호된 안전한 세션이 시작되었습니다.'}
                             </div>
                         </div>
+
+                        <button class="login-button" onclick="location.href='replay-attack-prevention-demo.html'" style="margin-top: 20px; background: #2ecc71;">
+                            API 보안 호출 체험하기 ➡️
+                        </button>
                     </div>
                 </div>
             `;
         }
 
         // PIN 입력 필드 포커스 효과
-        certificatePin.addEventListener('focus', function() {
+        certificatePin.addEventListener('focus', function () {
             this.parentElement.style.transform = 'scale(1.02)';
         });
-        
-        certificatePin.addEventListener('blur', function() {
+
+        certificatePin.addEventListener('blur', function () {
             this.parentElement.style.transform = 'scale(1)';
         });
     </script>
 </body>
-</html>
 
+</html>
