@@ -398,8 +398,11 @@
                 </div>
 
                 <div class="button-group">
-                    <button class="btn btn-primary" id="btnLogin" onclick="simulateLogin()">
-                        🔐 로그인 시뮬레이션
+                    <button class="btn btn-primary" id="btnLoginStart" onclick="startLogin()">
+                        🔐 로그인 시작
+                    </button>
+                    <button class="btn btn-primary" id="btnLoginNext" onclick="nextLoginStep()" disabled style="display: none;">
+                        ⏭️ 다음 단계
                     </button>
                     <button class="btn btn-secondary" onclick="resetSimulation()">
                         🔄 초기화
@@ -458,8 +461,11 @@
                 </div>
 
                 <div class="button-group">
-                    <button class="btn btn-primary" id="btnApiCall" onclick="simulateApiCall()" disabled>
-                        📤 API 호출 시뮬레이션
+                    <button class="btn btn-primary" id="btnApiCallStart" onclick="startApiCall()" disabled>
+                        📤 API 호출 시작
+                    </button>
+                    <button class="btn btn-primary" id="btnApiCallNext" onclick="nextApiCallStep()" disabled style="display: none;">
+                        ⏭️ 다음 단계
                     </button>
                     <button class="btn btn-secondary" onclick="simulateTimeSkew()">
                         ⚠️ 시간 오차 발생 시뮬레이션
@@ -519,6 +525,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="button-group" style="margin-top: 20px;">
+                        <button class="btn btn-primary" id="btnRetryStart" onclick="startRetry()" style="display: none;">
+                            🔄 재동기화 시작
+                        </button>
+                        <button class="btn btn-primary" id="btnRetryNext" onclick="nextRetryStep()" disabled style="display: none;">
+                            ⏭️ 다음 단계
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -567,212 +581,325 @@
                 (timeOffset > 0 ? 'positive' : timeOffset < 0 ? 'negative' : '');
         }
 
-        // 로그인 시뮬레이션
-        async function simulateLogin() {
-            const btn = document.getElementById('btnLogin');
-            btn.disabled = true;
+        // 로그인 단계 정의
+        const loginSteps = [
+            { client: 0, server: -1, name: '1. 로그인 요청' },
+            { client: -1, server: 0, name: '서버 인증 처리' },
+            { client: 1, server: 1, name: '2. 서버 시간 수신' },
+            { client: 2, server: -1, name: '3. 시간 보정값 계산' },
+            { client: 3, server: -1, name: '4. 보정값 저장' }
+        ];
 
-            // 클라이언트 단계 활성화
+        let loginCurrentStep = -1;
+
+        // 로그인 시작
+        function startLogin() {
+            resetLogin();
+            loginCurrentStep = 0;
+            document.getElementById('btnLoginStart').style.display = 'none';
+            document.getElementById('btnLoginNext').style.display = 'inline-block';
+            document.getElementById('btnLoginNext').disabled = false;
+            nextLoginStep();
+        }
+
+        // 로그인 다음 단계
+        function nextLoginStep() {
+            if (loginCurrentStep < 0 || loginCurrentStep >= loginSteps.length) {
+                return;
+            }
+
+            const step = loginSteps[loginCurrentStep];
             const clientSteps = document.querySelectorAll('#clientSteps .step-item');
             const serverSteps = document.querySelectorAll('#serverSteps .step-item');
 
-            // 1. 로그인 요청
-            clientSteps[0].classList.add('active');
-            await sleep(800);
-            clientSteps[0].classList.remove('active');
-            clientSteps[0].classList.add('completed');
+            // 이전 단계 완료 처리
+            if (loginCurrentStep > 0) {
+                const prevStep = loginSteps[loginCurrentStep - 1];
+                if (prevStep.client >= 0) clientSteps[prevStep.client].classList.remove('active');
+                if (prevStep.server >= 0) serverSteps[prevStep.server].classList.remove('active');
+            }
 
-            // 서버 인증 처리
-            serverSteps[0].classList.add('active');
-            await sleep(600);
-            serverSteps[0].classList.remove('active');
-            serverSteps[0].classList.add('completed');
+            // 현재 단계 활성화
+            if (step.client >= 0) {
+                clientSteps[step.client].classList.add('active');
+                if (step.client === 2) {
+                    // 시간 보정값 계산
+                    const actualServerTime = Date.now();
+                    const currentClientTime = Date.now();
+                    timeOffset = actualServerTime - currentClientTime;
+                    updateTimeDisplay();
+                }
+            }
+            if (step.server >= 0) {
+                serverSteps[step.server].classList.add('active');
+                if (step.server === 1) {
+                    // 서버 시간 수신
+                    const actualServerTime = Date.now();
+                    document.getElementById('receivedServerTime').textContent = actualServerTime;
+                }
+            }
 
-            // 2. 서버 시간 수신
-            serverSteps[1].classList.add('active');
-            const actualServerTime = Date.now();
-            document.getElementById('receivedServerTime').textContent = actualServerTime;
-            await sleep(500);
-            serverSteps[1].classList.remove('active');
-            serverSteps[1].classList.add('completed');
+            loginCurrentStep++;
 
-            clientSteps[1].classList.add('active');
-            await sleep(500);
-            clientSteps[1].classList.remove('active');
-            clientSteps[1].classList.add('completed');
+            // 마지막 단계인지 확인
+            if (loginCurrentStep >= loginSteps.length) {
+                // 모든 단계 완료 처리
+                const lastStep = loginSteps[loginSteps.length - 1];
+                if (lastStep.client >= 0) {
+                    clientSteps[lastStep.client].classList.remove('active');
+                    clientSteps[lastStep.client].classList.add('completed');
+                }
+                if (lastStep.server >= 0) {
+                    serverSteps[lastStep.server].classList.remove('active');
+                    serverSteps[lastStep.server].classList.add('completed');
+                }
 
-            // 3. 시간 보정값 계산
-            clientSteps[2].classList.add('active');
-            const currentClientTime = Date.now();
-            timeOffset = actualServerTime - currentClientTime;
-            updateTimeDisplay();
-            await sleep(600);
-            clientSteps[2].classList.remove('active');
-            clientSteps[2].classList.add('completed');
-
-            // 4. 보정값 저장
-            clientSteps[3].classList.add('active');
-            await sleep(400);
-            clientSteps[3].classList.remove('active');
-            clientSteps[3].classList.add('completed');
-
-            isLoggedIn = true;
-            document.getElementById('btnApiCall').disabled = false;
-            btn.textContent = '✅ 로그인 완료';
+                isLoggedIn = true;
+                document.getElementById('btnLoginNext').disabled = true;
+                document.getElementById('btnApiCallStart').disabled = false;
+            }
         }
 
-        // API 호출 시뮬레이션
-        async function simulateApiCall() {
-            const btn = document.getElementById('btnApiCall');
-            btn.disabled = true;
+        // 로그인 초기화
+        function resetLogin() {
+            loginCurrentStep = -1;
+            document.querySelectorAll('#clientSteps .step-item, #serverSteps .step-item').forEach(item => {
+                item.classList.remove('active', 'completed', 'error');
+            });
+        }
 
+        // API 호출 단계 정의
+        const apiCallSteps = [
+            { client: 0, server: -1, name: '1. 서버 시간 계산' },
+            { client: 1, server: -1, name: '2. 요청 데이터 구성' },
+            { client: 2, server: -1, name: '3. 서명 생성' },
+            { client: 3, server: -1, name: '4. API 요청 전송' },
+            { client: -1, server: 0, name: '1. JWT 토큰 검증' },
+            { client: -1, server: 1, name: '2. 서명 검증' },
+            { client: -1, server: 2, name: '3. 타임스탬프 검증' },
+            { client: -1, server: 3, name: '4. 검증 결과' }
+        ];
+
+        let apiCallCurrentStep = -1;
+        let calculatedServerTime = 0;
+
+        // API 호출 시작
+        function startApiCall() {
+            if (!isLoggedIn) {
+                alert('먼저 로그인을 완료해주세요.');
+                return;
+            }
+
+            resetApiCall();
+            apiCallCurrentStep = 0;
+            document.getElementById('btnApiCallStart').style.display = 'none';
+            document.getElementById('btnApiCallNext').style.display = 'inline-block';
+            document.getElementById('btnApiCallNext').disabled = false;
+            nextApiCallStep();
+        }
+
+        // API 호출 다음 단계
+        function nextApiCallStep() {
+            if (apiCallCurrentStep < 0 || apiCallCurrentStep >= apiCallSteps.length) {
+                return;
+            }
+
+            const step = apiCallSteps[apiCallCurrentStep];
             const clientSteps = document.querySelectorAll('#apiClientSteps .step-item');
             const serverSteps = document.querySelectorAll('#apiServerSteps .step-item');
 
-            // 모든 단계 초기화
-            clientSteps.forEach(step => {
-                step.classList.remove('active', 'completed', 'error');
-            });
-            serverSteps.forEach(step => {
-                step.classList.remove('active', 'completed', 'error');
-            });
-
-            // 클라이언트: 서버 시간 계산
-            clientSteps[0].classList.add('active');
-            const calculatedServerTime = Date.now() + timeOffset;
-            await sleep(500);
-            clientSteps[0].classList.remove('active');
-            clientSteps[0].classList.add('completed');
-
-            // 클라이언트: 요청 데이터 구성
-            clientSteps[1].classList.add('active');
-            const requestData = {
-                accountId: '12345',
-                amount: 10000,
-                timestamp: calculatedServerTime
-            };
-            document.getElementById('requestData').textContent = JSON.stringify(requestData, null, 2);
-            await sleep(600);
-            clientSteps[1].classList.remove('active');
-            clientSteps[1].classList.add('completed');
-
-            // 클라이언트: 서명 생성
-            clientSteps[2].classList.add('active');
-            await sleep(700);
-            clientSteps[2].classList.remove('active');
-            clientSteps[2].classList.add('completed');
-
-            // 클라이언트: API 요청 전송
-            clientSteps[3].classList.add('active');
-            await sleep(500);
-            clientSteps[3].classList.remove('active');
-            clientSteps[3].classList.add('completed');
-
-            // 서버: JWT 토큰 검증
-            serverSteps[0].classList.add('active');
-            await sleep(600);
-            serverSteps[0].classList.remove('active');
-            serverSteps[0].classList.add('completed');
-
-            // 서버: 서명 검증
-            serverSteps[1].classList.add('active');
-            await sleep(700);
-            serverSteps[1].classList.remove('active');
-            serverSteps[1].classList.add('completed');
-
-            // 서버: 타임스탬프 검증
-            serverSteps[2].classList.add('active');
-            const currentServerTime = Date.now();
-            const timeDiff = Math.abs(currentServerTime - calculatedServerTime);
-            const isValid = timeDiff <= 30000; // 30초
-            await sleep(600);
-            serverSteps[2].classList.remove('active');
-            serverSteps[2].classList.add('completed');
-
-            // 서버: 검증 결과
-            serverSteps[3].classList.add('active');
-            if (isValid) {
-                document.getElementById('verificationResult').innerHTML = 
-                    `<span class="status-badge status-success">✅ 검증 통과</span><br>` +
-                    `시간 차이: ${timeDiff}ms (허용 범위: 30초)`;
-            } else {
-                document.getElementById('verificationResult').innerHTML = 
-                    `<span class="status-badge status-error">❌ 검증 실패</span><br>` +
-                    `시간 차이: ${timeDiff}ms (허용 범위 초과)`;
+            // 이전 단계 완료 처리
+            if (apiCallCurrentStep > 0) {
+                const prevStep = apiCallSteps[apiCallCurrentStep - 1];
+                if (prevStep.client >= 0) clientSteps[prevStep.client].classList.remove('active');
+                if (prevStep.server >= 0) serverSteps[prevStep.server].classList.remove('active');
             }
-            await sleep(500);
-            serverSteps[3].classList.remove('active');
-            serverSteps[3].classList.add('completed');
 
-            btn.disabled = false;
+            // 현재 단계 활성화
+            if (step.client >= 0) {
+                clientSteps[step.client].classList.add('active');
+                if (step.client === 0) {
+                    // 서버 시간 계산
+                    calculatedServerTime = Date.now() + timeOffset;
+                } else if (step.client === 1) {
+                    // 요청 데이터 구성
+                    const requestData = {
+                        accountId: '12345',
+                        amount: 10000,
+                        timestamp: calculatedServerTime
+                    };
+                    document.getElementById('requestData').textContent = JSON.stringify(requestData, null, 2);
+                }
+            }
+            if (step.server >= 0) {
+                serverSteps[step.server].classList.add('active');
+                if (step.server === 2) {
+                    // 타임스탬프 검증
+                    const currentServerTime = Date.now();
+                    const timeDiff = Math.abs(currentServerTime - calculatedServerTime);
+                    const isValid = timeDiff <= 30000; // 30초
+                } else if (step.server === 3) {
+                    // 검증 결과
+                    const currentServerTime = Date.now();
+                    const timeDiff = Math.abs(currentServerTime - calculatedServerTime);
+                    const isValid = timeDiff <= 30000;
+                    if (isValid) {
+                        document.getElementById('verificationResult').innerHTML = 
+                            `<span class="status-badge status-success">✅ 검증 통과</span><br>` +
+                            `시간 차이: ${timeDiff}ms (허용 범위: 30초)`;
+                    } else {
+                        document.getElementById('verificationResult').innerHTML = 
+                            `<span class="status-badge status-error">❌ 검증 실패</span><br>` +
+                            `시간 차이: ${timeDiff}ms (허용 범위 초과)`;
+                    }
+                }
+            }
+
+            apiCallCurrentStep++;
+
+            // 마지막 단계인지 확인
+            if (apiCallCurrentStep >= apiCallSteps.length) {
+                // 모든 단계 완료 처리
+                const lastStep = apiCallSteps[apiCallSteps.length - 1];
+                if (lastStep.client >= 0) {
+                    clientSteps[lastStep.client].classList.remove('active');
+                    clientSteps[lastStep.client].classList.add('completed');
+                }
+                if (lastStep.server >= 0) {
+                    serverSteps[lastStep.server].classList.remove('active');
+                    serverSteps[lastStep.server].classList.add('completed');
+                }
+
+                document.getElementById('btnApiCallNext').disabled = true;
+            }
         }
 
+        // API 호출 초기화
+        function resetApiCall() {
+            apiCallCurrentStep = -1;
+            document.querySelectorAll('#apiClientSteps .step-item, #apiServerSteps .step-item').forEach(item => {
+                item.classList.remove('active', 'completed', 'error');
+            });
+            document.getElementById('requestData').textContent = '-';
+            document.getElementById('verificationResult').textContent = '대기 중...';
+        }
+
+        // 재동기화 단계 정의
+        const retrySteps = [
+            { client: 0, server: -1, name: '1. TIME_SKEW 에러 감지' },
+            { client: 1, server: -1, name: '2. 서버 시간 재수신' },
+            { client: 2, server: -1, name: '3. timeOffset 재계산' },
+            { client: 3, server: -1, name: '4. 자동 재시도' },
+            { client: -1, server: 0, name: '1. 타임스탬프 재검증' },
+            { client: -1, server: 1, name: '2. 검증 통과' }
+        ];
+
+        let retryCurrentStep = -1;
+
         // 시간 오차 발생 시뮬레이션
-        async function simulateTimeSkew() {
+        function simulateTimeSkew() {
+            if (!isLoggedIn) {
+                alert('먼저 로그인을 완료해주세요.');
+                return;
+            }
+
             // 시간 오차 인위적으로 생성
-            const oldOffset = timeOffset;
             timeOffset = 60000; // 1분 오차
             updateTimeDisplay();
 
-            // API 호출 시뮬레이션
-            await simulateApiCall();
+            // API 호출을 먼저 완료해야 함
+            if (apiCallCurrentStep < apiCallSteps.length) {
+                alert('먼저 API 호출을 완료해주세요.');
+                return;
+            }
 
             // 재동기화 프로세스 표시
             document.getElementById('retrySteps').style.display = 'block';
+            resetRetry();
+            retryCurrentStep = 0;
+            document.getElementById('btnRetryStart').style.display = 'inline-block';
+            document.getElementById('btnRetryNext').style.display = 'inline-block';
+            document.getElementById('btnRetryNext').disabled = false;
+            startRetry();
+        }
+
+        // 재동기화 시작
+        function startRetry() {
+            if (retryCurrentStep < 0) {
+                retryCurrentStep = 0;
+            }
+            document.getElementById('btnRetryStart').style.display = 'none';
+            nextRetryStep();
+        }
+
+        // 재동기화 다음 단계
+        function nextRetryStep() {
+            if (retryCurrentStep < 0 || retryCurrentStep >= retrySteps.length) {
+                return;
+            }
+
+            const step = retrySteps[retryCurrentStep];
             const retryClientSteps = document.querySelectorAll('#retryClientSteps .step-item');
             const retryServerSteps = document.querySelectorAll('#retryServerSteps .step-item');
 
-            // 모든 단계 초기화
-            retryClientSteps.forEach(step => {
-                step.classList.remove('active', 'completed', 'error');
+            // 이전 단계 완료 처리
+            if (retryCurrentStep > 0) {
+                const prevStep = retrySteps[retryCurrentStep - 1];
+                if (prevStep.client >= 0) retryClientSteps[prevStep.client].classList.remove('active');
+                if (prevStep.server >= 0) retryServerSteps[prevStep.server].classList.remove('active');
+            }
+
+            // 현재 단계 활성화
+            if (step.client >= 0) {
+                retryClientSteps[step.client].classList.add('active');
+                if (step.client === 1) {
+                    // 서버 시간 재수신
+                    const newServerTime = Date.now();
+                } else if (step.client === 2) {
+                    // timeOffset 재계산
+                    const newServerTime = Date.now();
+                    timeOffset = newServerTime - Date.now();
+                    updateTimeDisplay();
+                }
+            }
+            if (step.server >= 0) {
+                retryServerSteps[step.server].classList.add('active');
+            }
+
+            retryCurrentStep++;
+
+            // 마지막 단계인지 확인
+            if (retryCurrentStep >= retrySteps.length) {
+                // 모든 단계 완료 처리
+                const lastStep = retrySteps[retrySteps.length - 1];
+                if (lastStep.client >= 0) {
+                    retryClientSteps[lastStep.client].classList.remove('active');
+                    retryClientSteps[lastStep.client].classList.add('completed');
+                }
+                if (lastStep.server >= 0) {
+                    retryServerSteps[lastStep.server].classList.remove('active');
+                    retryServerSteps[lastStep.server].classList.add('completed');
+                }
+
+                document.getElementById('btnRetryNext').disabled = true;
+            }
+        }
+
+        // 재동기화 초기화
+        function resetRetry() {
+            retryCurrentStep = -1;
+            document.querySelectorAll('#retryClientSteps .step-item, #retryServerSteps .step-item').forEach(item => {
+                item.classList.remove('active', 'completed', 'error');
             });
-            retryServerSteps.forEach(step => {
-                step.classList.remove('active', 'completed', 'error');
-            });
-
-            // TIME_SKEW 에러 감지
-            retryClientSteps[0].classList.add('active');
-            await sleep(500);
-            retryClientSteps[0].classList.remove('active');
-            retryClientSteps[0].classList.add('completed');
-
-            // 서버 시간 재수신
-            retryClientSteps[1].classList.add('active');
-            const newServerTime = Date.now();
-            await sleep(500);
-            retryClientSteps[1].classList.remove('active');
-            retryClientSteps[1].classList.add('completed');
-
-            // timeOffset 재계산
-            retryClientSteps[2].classList.add('active');
-            timeOffset = newServerTime - Date.now();
-            updateTimeDisplay();
-            await sleep(600);
-            retryClientSteps[2].classList.remove('active');
-            retryClientSteps[2].classList.add('completed');
-
-            // 자동 재시도
-            retryClientSteps[3].classList.add('active');
-            await sleep(500);
-            retryClientSteps[3].classList.remove('active');
-            retryClientSteps[3].classList.add('completed');
-
-            // 서버 재검증
-            retryServerSteps[0].classList.add('active');
-            await sleep(600);
-            retryServerSteps[0].classList.remove('active');
-            retryServerSteps[0].classList.add('completed');
-
-            retryServerSteps[1].classList.add('active');
-            await sleep(500);
-            retryServerSteps[1].classList.remove('active');
-            retryServerSteps[1].classList.add('completed');
         }
 
         // 초기화
         function resetSimulation() {
             isLoggedIn = false;
             timeOffset = 0;
+            loginCurrentStep = -1;
+            apiCallCurrentStep = -1;
+            retryCurrentStep = -1;
             updateTimeDisplay();
 
             // 모든 단계 초기화
@@ -780,9 +907,22 @@
                 item.classList.remove('active', 'completed', 'error');
             });
 
-            document.getElementById('btnLogin').disabled = false;
-            document.getElementById('btnLogin').textContent = '🔐 로그인 시뮬레이션';
-            document.getElementById('btnApiCall').disabled = true;
+            // 로그인 버튼 초기화
+            document.getElementById('btnLoginStart').style.display = 'inline-block';
+            document.getElementById('btnLoginNext').style.display = 'none';
+            document.getElementById('btnLoginNext').disabled = true;
+
+            // API 호출 버튼 초기화
+            document.getElementById('btnApiCallStart').disabled = true;
+            document.getElementById('btnApiCallStart').style.display = 'inline-block';
+            document.getElementById('btnApiCallNext').style.display = 'none';
+            document.getElementById('btnApiCallNext').disabled = true;
+
+            // 재동기화 버튼 초기화
+            document.getElementById('btnRetryStart').style.display = 'none';
+            document.getElementById('btnRetryNext').style.display = 'none';
+            document.getElementById('btnRetryNext').disabled = true;
+
             document.getElementById('receivedServerTime').textContent = '-';
             document.getElementById('requestData').textContent = '-';
             document.getElementById('verificationResult').textContent = '대기 중...';

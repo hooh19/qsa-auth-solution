@@ -429,8 +429,11 @@
                 </div>
 
                 <div class="button-group">
-                    <button class="btn btn-primary" id="btnPhase1" onclick="simulatePhase1()">
-                        🚀 Phase 1 시뮬레이션 시작
+                    <button class="btn btn-primary" id="btnPhase1Start" onclick="startPhase1()">
+                        🚀 Phase 1 시작
+                    </button>
+                    <button class="btn btn-primary" id="btnPhase1Next" onclick="nextPhase1Step()" disabled style="display: none;">
+                        ⏭️ 다음 단계
                     </button>
                     <button class="btn btn-secondary" onclick="resetSimulation()">
                         🔄 초기화
@@ -507,8 +510,11 @@
                 </div>
 
                 <div class="button-group">
-                    <button class="btn btn-primary" id="btnPhase2" onclick="simulatePhase2()" disabled>
-                        📤 Phase 2 시뮬레이션 시작
+                    <button class="btn btn-primary" id="btnPhase2Start" onclick="startPhase2()" disabled>
+                        📤 Phase 2 시작
+                    </button>
+                    <button class="btn btn-primary" id="btnPhase2Next" onclick="nextPhase2Step()" disabled style="display: none;">
+                        ⏭️ 다음 단계
                     </button>
                 </div>
             </div>
@@ -541,178 +547,222 @@
         // 시뮬레이션 상태
         let phase1Completed = false;
         let phase2Completed = false;
+        let phase1CurrentStep = -1;
+        let phase2CurrentStep = -1;
 
-        // Phase 1 시뮬레이션
-        async function simulatePhase1() {
-            const btn = document.getElementById('btnPhase1');
-            btn.disabled = true;
+        // Phase 1 단계 정의
+        const phase1Steps = [
+            { client: 0, channel: -1, bank: -1, auth: -1, name: '1. 키 쌍 생성' },
+            { client: 1, channel: 0, bank: -1, auth: -1, name: '2. 인증 요청' },
+            { client: -1, channel: 1, bank: 0, auth: -1, name: '3. 요청 전달' },
+            { client: -1, channel: -1, bank: 1, auth: -1, name: '4. 인증 검증' },
+            { client: -1, channel: -1, bank: 2, auth: 0, name: '5. 토큰 발급 요청' },
+            { client: -1, channel: -1, bank: -1, auth: 1, name: '6. JWT 생성' },
+            { client: -1, channel: -1, bank: 3, auth: 2, name: '7. 토큰 전달' },
+            { client: -1, channel: 2, bank: -1, auth: -1, name: '8. 토큰 전달' },
+            { client: 2, channel: -1, bank: -1, auth: -1, name: '9. 토큰 저장' }
+        ];
 
+        // Phase 1 시작
+        function startPhase1() {
+            resetPhase1();
+            phase1CurrentStep = 0;
+            document.getElementById('btnPhase1Start').style.display = 'none';
+            document.getElementById('btnPhase1Next').style.display = 'inline-block';
+            document.getElementById('btnPhase1Next').disabled = false;
+            nextPhase1Step();
+        }
+
+        // Phase 1 다음 단계
+        function nextPhase1Step() {
+            if (phase1CurrentStep < 0 || phase1CurrentStep >= phase1Steps.length) {
+                return;
+            }
+
+            const step = phase1Steps[phase1CurrentStep];
             const clientSteps = document.querySelectorAll('#phase1ClientSteps .step-item');
             const channelSteps = document.querySelectorAll('#phase1ChannelSteps .step-item');
             const bankSteps = document.querySelectorAll('#phase1BankSteps .step-item');
             const authSteps = document.querySelectorAll('#phase1AuthSteps .step-item');
 
-            // 1. 키 쌍 생성
-            clientSteps[0].classList.add('active');
-            await sleep(800);
-            clientSteps[0].classList.remove('active');
-            clientSteps[0].classList.add('completed');
+            // 이전 단계 완료 처리
+            if (phase1CurrentStep > 0) {
+                const prevStep = phase1Steps[phase1CurrentStep - 1];
+                if (prevStep.client >= 0) clientSteps[prevStep.client].classList.remove('active');
+                if (prevStep.channel >= 0) channelSteps[prevStep.channel].classList.remove('active');
+                if (prevStep.bank >= 0) bankSteps[prevStep.bank].classList.remove('active');
+                if (prevStep.auth >= 0) authSteps[prevStep.auth].classList.remove('active');
+            }
 
-            // 2. 인증 요청
-            clientSteps[1].classList.add('active');
-            channelSteps[0].classList.add('active');
-            await sleep(600);
-            clientSteps[1].classList.remove('active');
-            clientSteps[1].classList.add('completed');
-            channelSteps[0].classList.remove('active');
-            channelSteps[0].classList.add('completed');
+            // 현재 단계 활성화
+            if (step.client >= 0) {
+                clientSteps[step.client].classList.add('active');
+            }
+            if (step.channel >= 0) {
+                channelSteps[step.channel].classList.add('active');
+            }
+            if (step.bank >= 0) {
+                bankSteps[step.bank].classList.add('active');
+            }
+            if (step.auth >= 0) {
+                authSteps[step.auth].classList.add('active');
+            }
 
-            // 3. 요청 전달
-            channelSteps[1].classList.add('active');
-            bankSteps[0].classList.add('active');
-            await sleep(600);
-            channelSteps[1].classList.remove('active');
-            channelSteps[1].classList.add('completed');
-            bankSteps[0].classList.remove('active');
-            bankSteps[0].classList.add('completed');
+            phase1CurrentStep++;
 
-            // 4. 인증 검증
-            bankSteps[1].classList.add('active');
-            await sleep(800);
-            bankSteps[1].classList.remove('active');
-            bankSteps[1].classList.add('completed');
+            // 마지막 단계인지 확인
+            if (phase1CurrentStep >= phase1Steps.length) {
+                // 모든 단계 완료 처리
+                const lastStep = phase1Steps[phase1Steps.length - 1];
+                if (lastStep.client >= 0) {
+                    clientSteps[lastStep.client].classList.remove('active');
+                    clientSteps[lastStep.client].classList.add('completed');
+                }
+                if (lastStep.channel >= 0) {
+                    channelSteps[lastStep.channel].classList.remove('active');
+                    channelSteps[lastStep.channel].classList.add('completed');
+                }
+                if (lastStep.bank >= 0) {
+                    bankSteps[lastStep.bank].classList.remove('active');
+                    bankSteps[lastStep.bank].classList.add('completed');
+                }
+                if (lastStep.auth >= 0) {
+                    authSteps[lastStep.auth].classList.remove('active');
+                    authSteps[lastStep.auth].classList.add('completed');
+                }
 
-            // 5. 토큰 발급 요청
-            bankSteps[2].classList.add('active');
-            authSteps[0].classList.add('active');
-            await sleep(600);
-            bankSteps[2].classList.remove('active');
-            bankSteps[2].classList.add('completed');
-            authSteps[0].classList.remove('active');
-            authSteps[0].classList.add('completed');
-
-            // 6. JWT 생성
-            authSteps[1].classList.add('active');
-            await sleep(1000);
-            authSteps[1].classList.remove('active');
-            authSteps[1].classList.add('completed');
-
-            // 7. 토큰 전달
-            authSteps[2].classList.add('active');
-            bankSteps[3].classList.add('active');
-            await sleep(600);
-            authSteps[2].classList.remove('active');
-            authSteps[2].classList.add('completed');
-            bankSteps[3].classList.remove('active');
-            bankSteps[3].classList.add('completed');
-
-            // 8. 토큰 전달
-            channelSteps[2].classList.add('active');
-            await sleep(600);
-            channelSteps[2].classList.remove('active');
-            channelSteps[2].classList.add('completed');
-
-            // 9. 토큰 저장
-            clientSteps[2].classList.add('active');
-            await sleep(600);
-            clientSteps[2].classList.remove('active');
-            clientSteps[2].classList.add('completed');
-
-            phase1Completed = true;
-            document.getElementById('btnPhase2').disabled = false;
-            btn.textContent = '✅ Phase 1 완료';
+                phase1Completed = true;
+                document.getElementById('btnPhase1Next').disabled = true;
+                document.getElementById('btnPhase2Start').disabled = false;
+            }
         }
 
-        // Phase 2 시뮬레이션
-        async function simulatePhase2() {
+        // Phase 1 초기화
+        function resetPhase1() {
+            phase1CurrentStep = -1;
+            document.querySelectorAll('#phase1ClientSteps .step-item, #phase1ChannelSteps .step-item, #phase1BankSteps .step-item, #phase1AuthSteps .step-item').forEach(item => {
+                item.classList.remove('active', 'completed', 'error');
+            });
+        }
+
+        // Phase 2 단계 정의
+        const phase2Steps = [
+            { client: 0, channel: -1, auth: -1, name: '10. 서명 생성' },
+            { client: 1, channel: 0, auth: -1, name: '11. API 요청 전송' },
+            { client: -1, channel: 1, auth: 0, name: '12. 1차 검증: JWT 토큰 검증' },
+            { client: -1, channel: -1, auth: 1, name: 'Public Key 추출' },
+            { client: -1, channel: 2, auth: -1, name: '13. 2차 검증: 서명값 검증' },
+            { client: -1, channel: 3, auth: -1, name: '검증 결과' }
+        ];
+
+        // Phase 2 시작
+        function startPhase2() {
             if (!phase1Completed) {
                 alert('먼저 Phase 1을 완료해주세요.');
                 return;
             }
 
-            const btn = document.getElementById('btnPhase2');
-            btn.disabled = true;
+            resetPhase2();
+            phase2CurrentStep = 0;
+            document.getElementById('btnPhase2Start').style.display = 'none';
+            document.getElementById('btnPhase2Next').style.display = 'inline-block';
+            document.getElementById('btnPhase2Next').disabled = false;
+            nextPhase2Step();
+        }
 
+        // Phase 2 다음 단계
+        function nextPhase2Step() {
+            if (phase2CurrentStep < 0 || phase2CurrentStep >= phase2Steps.length) {
+                return;
+            }
+
+            const step = phase2Steps[phase2CurrentStep];
             const clientSteps = document.querySelectorAll('#phase2ClientSteps .step-item');
             const channelSteps = document.querySelectorAll('#phase2ChannelSteps .step-item');
             const authSteps = document.querySelectorAll('#phase2AuthSteps .step-item');
 
-            // 모든 단계 초기화
-            clientSteps.forEach(step => {
-                step.classList.remove('active', 'completed', 'error');
+            // 이전 단계 완료 처리
+            if (phase2CurrentStep > 0) {
+                const prevStep = phase2Steps[phase2CurrentStep - 1];
+                if (prevStep.client >= 0) clientSteps[prevStep.client].classList.remove('active');
+                if (prevStep.channel >= 0) channelSteps[prevStep.channel].classList.remove('active');
+                if (prevStep.auth >= 0) authSteps[prevStep.auth].classList.remove('active');
+            }
+
+            // 현재 단계 활성화
+            if (step.client >= 0) {
+                clientSteps[step.client].classList.add('active');
+            }
+            if (step.channel >= 0) {
+                channelSteps[step.channel].classList.add('active');
+                if (step.channel === 3) {
+                    // 검증 결과 표시
+                    document.getElementById('phase2Result').innerHTML = 
+                        `<span class="status-badge status-success">✅ 검증 통과</span><br>` +
+                        `JWT 토큰 검증 성공<br>` +
+                        `서명값 검증 성공<br>` +
+                        `API 호출 허용`;
+                }
+            }
+            if (step.auth >= 0) {
+                authSteps[step.auth].classList.add('active');
+            }
+
+            phase2CurrentStep++;
+
+            // 마지막 단계인지 확인
+            if (phase2CurrentStep >= phase2Steps.length) {
+                // 모든 단계 완료 처리
+                const lastStep = phase2Steps[phase2Steps.length - 1];
+                if (lastStep.client >= 0) {
+                    clientSteps[lastStep.client].classList.remove('active');
+                    clientSteps[lastStep.client].classList.add('completed');
+                }
+                if (lastStep.channel >= 0) {
+                    channelSteps[lastStep.channel].classList.remove('active');
+                    channelSteps[lastStep.channel].classList.add('completed');
+                }
+                if (lastStep.auth >= 0) {
+                    authSteps[lastStep.auth].classList.remove('active');
+                    authSteps[lastStep.auth].classList.add('completed');
+                }
+
+                phase2Completed = true;
+                document.getElementById('btnPhase2Next').disabled = true;
+            }
+        }
+
+        // Phase 2 초기화
+        function resetPhase2() {
+            phase2CurrentStep = -1;
+            document.querySelectorAll('#phase2ClientSteps .step-item, #phase2ChannelSteps .step-item, #phase2AuthSteps .step-item').forEach(item => {
+                item.classList.remove('active', 'completed', 'error');
             });
-            channelSteps.forEach(step => {
-                step.classList.remove('active', 'completed', 'error');
-            });
-            authSteps.forEach(step => {
-                step.classList.remove('active', 'completed', 'error');
-            });
-
-            // 10. 서명 생성
-            clientSteps[0].classList.add('active');
-            await sleep(800);
-            clientSteps[0].classList.remove('active');
-            clientSteps[0].classList.add('completed');
-
-            // 11. API 요청 전송
-            clientSteps[1].classList.add('active');
-            channelSteps[0].classList.add('active');
-            await sleep(600);
-            clientSteps[1].classList.remove('active');
-            clientSteps[1].classList.add('completed');
-            channelSteps[0].classList.remove('active');
-            channelSteps[0].classList.add('completed');
-
-            // 12. 1차 검증: JWT 토큰 검증
-            channelSteps[1].classList.add('active');
-            authSteps[0].classList.add('active');
-            await sleep(800);
-            channelSteps[1].classList.remove('active');
-            channelSteps[1].classList.add('completed');
-            authSteps[0].classList.remove('active');
-            authSteps[0].classList.add('completed');
-
-            // Public Key 추출
-            authSteps[1].classList.add('active');
-            await sleep(600);
-            authSteps[1].classList.remove('active');
-            authSteps[1].classList.add('completed');
-
-            // 13. 2차 검증: 서명값 검증
-            channelSteps[2].classList.add('active');
-            await sleep(1000);
-            channelSteps[2].classList.remove('active');
-            channelSteps[2].classList.add('completed');
-
-            // 검증 결과
-            channelSteps[3].classList.add('active');
-            document.getElementById('phase2Result').innerHTML = 
-                `<span class="status-badge status-success">✅ 검증 통과</span><br>` +
-                `JWT 토큰 검증 성공<br>` +
-                `서명값 검증 성공<br>` +
-                `API 호출 허용`;
-            await sleep(500);
-            channelSteps[3].classList.remove('active');
-            channelSteps[3].classList.add('completed');
-
-            phase2Completed = true;
-            btn.textContent = '✅ Phase 2 완료';
+            document.getElementById('phase2Result').textContent = '대기 중...';
         }
 
         // 초기화
         function resetSimulation() {
             phase1Completed = false;
             phase2Completed = false;
+            phase1CurrentStep = -1;
+            phase2CurrentStep = -1;
 
             // 모든 단계 초기화
             document.querySelectorAll('.step-item').forEach(item => {
                 item.classList.remove('active', 'completed', 'error');
             });
 
-            document.getElementById('btnPhase1').disabled = false;
-            document.getElementById('btnPhase1').textContent = '🚀 Phase 1 시뮬레이션 시작';
-            document.getElementById('btnPhase2').disabled = true;
-            document.getElementById('btnPhase2').textContent = '📤 Phase 2 시뮬레이션 시작';
+            // Phase 1 버튼 초기화
+            document.getElementById('btnPhase1Start').style.display = 'inline-block';
+            document.getElementById('btnPhase1Next').style.display = 'none';
+            document.getElementById('btnPhase1Next').disabled = true;
+
+            // Phase 2 버튼 초기화
+            document.getElementById('btnPhase2Start').disabled = true;
+            document.getElementById('btnPhase2Start').style.display = 'inline-block';
+            document.getElementById('btnPhase2Next').style.display = 'none';
+            document.getElementById('btnPhase2Next').disabled = true;
             document.getElementById('phase2Result').textContent = '대기 중...';
         }
 
