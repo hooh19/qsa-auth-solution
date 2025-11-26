@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ATON - 인증서 발급</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0066cc;
+            --primary-dark: #004499;
+            --primary-light: #3385d6;
+            --secondary-color: #4a90e2;
+            --accent-color: #ff6b6b;
+            --text-dark: #1a1a1a;
+            --text-light: #666666;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --border-color: #e0e0e0;
+            --gradient-primary: linear-gradient(135deg, #0066cc 0%, #4a90e2 100%);
+            --gradient-hero: linear-gradient(135deg, #0066cc 0%, #3385d6 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gradient-hero);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-white);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: var(--gradient-primary);
+            padding: 36px 30px 32px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-image {
+            height: 52px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-weight: 300;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+
+        .quantum-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .body {
+            padding: 40px 30px;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title h2 {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .title p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .cert-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .cert-type-option {
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-light);
+        }
+
+        .cert-type-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .cert-type-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(0, 102, 204, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+        }
+
+        .cert-type-option.selected.rsa {
+            border-color: var(--primary-color);
+            background: rgba(0, 102, 204, 0.1);
+        }
+
+        .cert-type-option.selected.pqc {
+            border-color: var(--primary-light);
+            background: rgba(51, 133, 214, 0.1);
+        }
+
+        .cert-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .cert-type-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .cert-type-desc {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            padding-left: 50px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--bg-light);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-white);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-button:active {
+            transform: scale(0.98);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            display: none;
+            padding: 12px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .progress-steps {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .progress-steps.show {
+            display: block;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-light);
+            border-radius: 8px;
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: var(--border-color);
+            color: var(--text-light);
+        }
+
+        .step-item.active .step-icon {
+            background: var(--primary-color);
+            color: white;
+            animation: pulse-icon 1s ease-in-out infinite;
+        }
+
+        .step-item.completed .step-icon {
+            background: var(--primary-light);
+            color: white;
+        }
+
+        @keyframes pulse-icon {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .step-text {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .step-item.completed .step-text {
+            color: var(--text-light);
+        }
+
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 30px;
+        }
+
+        .success-screen.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+        .certificate-preview {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .cert-preview-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cert-preview-item:last-child {
+            border-bottom: none;
+        }
+
+        .cert-preview-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .cert-preview-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 20px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="aton-logo.png" alt="ATON" class="logo-image" onerror="this.style.display='none'">
+            </div>
+            <div class="tagline">Quantum Safe Guard</div>
+            <div class="quantum-badge">🔐 양자암호 기반 보안</div>
+        </div>
+
+        <div class="body">
+            <!-- 발급 폼 -->
+            <div id="issueForm">
+                <div class="title">
+                    <h2>인증서 발급</h2>
+                    <p>양자암호 기반 보안 인증서를 발급받으세요</p>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <form id="certificateForm">
+                    <div class="form-group">
+                        <label class="form-label">인증서 타입 선택</label>
+                        <div class="cert-type-selector">
+                            <div class="cert-type-option rsa" data-type="RSA">
+                                <div class="cert-type-icon">🔐</div>
+                                <div class="cert-type-name">RSA 인증서</div>
+                                <div class="cert-type-desc">전통적 암호화</div>
+                            </div>
+                            <div class="cert-type-option pqc" data-type="PQC">
+                                <div class="cert-type-icon">🔐</div>
+                                <div class="cert-type-name">PQC 인증서</div>
+                                <div class="cert-type-desc">양자암호 보안</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="certType" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="userName">이름</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input 
+                                type="text" 
+                                id="userName" 
+                                class="form-input" 
+                                placeholder="이름을 입력하세요"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="userPhone">전화번호</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">📱</span>
+                            <input 
+                                type="tel" 
+                                id="userPhone" 
+                                class="form-input" 
+                                placeholder="전화번호를 입력하세요"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="certPin">인증서 PIN</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔑</span>
+                            <input 
+                                type="password" 
+                                id="certPin" 
+                                class="form-input" 
+                                placeholder="PIN을 입력하세요 (4자리 이상)"
+                                minlength="4"
+                                maxlength="20"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="certPinConfirm">PIN 재입력</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔑</span>
+                            <input 
+                                type="password" 
+                                id="certPinConfirm" 
+                                class="form-input" 
+                                placeholder="PIN을 다시 입력하세요"
+                                minlength="4"
+                                maxlength="20"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-button" id="submitButton">
+                        인증서 발급 신청
+                    </button>
+                </form>
+
+                <!-- 진행 단계 -->
+                <div class="progress-steps" id="progressSteps">
+                    <div class="step-item" id="step1">
+                        <div class="step-icon">1</div>
+                        <div class="step-text">사용자 정보 검증 중...</div>
+                    </div>
+                    <div class="step-item" id="step2">
+                        <div class="step-icon">2</div>
+                        <div class="step-text">키 쌍 생성 중...</div>
+                    </div>
+                    <div class="step-item" id="step3">
+                        <div class="step-icon">3</div>
+                        <div class="step-text">인증서 서명 중...</div>
+                    </div>
+                    <div class="step-item" id="step4">
+                        <div class="step-icon">4</div>
+                        <div class="step-text">인증서 발급 완료</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 성공 화면 -->
+            <div class="success-screen" id="successScreen">
+                <div class="success-icon">✅</div>
+                <h2 class="success-title">인증서 발급 완료</h2>
+                <p class="success-message">양자암호 기반 인증서가 성공적으로 발급되었습니다.</p>
+
+                <div class="certificate-preview" id="certificatePreview">
+                    <!-- 동적으로 생성됨 -->
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="location.href='aton-login.html'">
+                        로그인하기
+                    </button>
+                    <button class="btn btn-secondary" onclick="location.reload()">
+                        추가 발급
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 인증서 타입 선택
+        const certTypeOptions = document.querySelectorAll('.cert-type-option');
+        const certTypeInput = document.getElementById('certType');
+        const submitButton = document.getElementById('submitButton');
+
+        certTypeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                certTypeOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                certTypeInput.value = option.getAttribute('data-type');
+                submitButton.disabled = false;
+            });
+        });
+
+        // 폼 제출
+        const certificateForm = document.getElementById('certificateForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const issueForm = document.getElementById('issueForm');
+        const progressSteps = document.getElementById('progressSteps');
+        const successScreen = document.getElementById('successScreen');
+        const certificatePreview = document.getElementById('certificatePreview');
+
+        certificateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const certType = certTypeInput.value;
+            const userName = document.getElementById('userName').value.trim();
+            const userPhone = document.getElementById('userPhone').value.trim();
+            const certPin = document.getElementById('certPin').value;
+            const certPinConfirm = document.getElementById('certPinConfirm').value;
+
+            // 에러 메시지 숨기기
+            errorMessage.classList.remove('show');
+
+            // 검증
+            if (!certType) {
+                showError('인증서 타입을 선택해주세요.');
+                return;
+            }
+
+            if (!userName || !userPhone) {
+                showError('모든 정보를 입력해주세요.');
+                return;
+            }
+
+            if (!certPin || certPin.length < 4) {
+                showError('PIN은 4자리 이상 입력해주세요.');
+                document.getElementById('certPin').focus();
+                return;
+            }
+
+            if (certPin !== certPinConfirm) {
+                showError('PIN이 일치하지 않습니다.');
+                document.getElementById('certPinConfirm').focus();
+                return;
+            }
+
+            // 발급 프로세스 시작
+            submitButton.disabled = true;
+            progressSteps.classList.add('show');
+            const startTime = Date.now();
+
+            try {
+                await issueCertificate(certType, userName, userPhone, certPin, startTime);
+            } catch (error) {
+                showError(error.message || '인증서 발급에 실패했습니다.');
+                submitButton.disabled = false;
+                progressSteps.classList.remove('show');
+            }
+        });
+
+        // 인증서 발급 시뮬레이션
+        async function issueCertificate(certType, userName, userPhone, certPin, startTime) {
+            // Step 1: 사용자 정보 검증
+            await animateStep('step1', 500);
+            
+            // Step 2: 키 쌍 생성
+            await animateStep('step2', 800);
+            
+            // Step 3: 인증서 서명
+            await animateStep('step3', 600);
+            
+            // Step 4: 발급 완료
+            await animateStep('step4', 300);
+
+            // 발급 소요 시간 계산
+            const endTime = Date.now();
+            const duration = (endTime - startTime) / 1000; // 초 단위
+
+            // 성공 화면 표시
+            setTimeout(() => {
+                showSuccessScreen(certType, userName, userPhone, duration);
+            }, 500);
+        }
+
+        // 단계 애니메이션
+        function animateStep(stepId, duration) {
+            return new Promise((resolve) => {
+                const step = document.getElementById(stepId);
+                step.classList.add('active');
+                
+                setTimeout(() => {
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                    step.querySelector('.step-icon').textContent = '✓';
+                    resolve();
+                }, duration);
+            });
+        }
+
+        // 성공 화면 표시
+        function showSuccessScreen(certType, userName, userPhone, duration) {
+            const issueDate = new Date().toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            const expiryDateStr = expiryDate.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+
+            certificatePreview.innerHTML = `
+                <div class="cert-preview-item">
+                    <span class="cert-preview-label">인증서 타입</span>
+                    <span class="cert-preview-value">${certType === 'PQC' ? 'PQC 인증서' : 'RSA 인증서'}</span>
+                </div>
+                <div class="cert-preview-item">
+                    <span class="cert-preview-label">이름</span>
+                    <span class="cert-preview-value">${userName}</span>
+                </div>
+                <div class="cert-preview-item">
+                    <span class="cert-preview-label">전화번호</span>
+                    <span class="cert-preview-value">${userPhone}</span>
+                </div>
+                <div class="cert-preview-item">
+                    <span class="cert-preview-label">발급일</span>
+                    <span class="cert-preview-value">${issueDate}</span>
+                </div>
+                <div class="cert-preview-item">
+                    <span class="cert-preview-label">유효기간</span>
+                    <span class="cert-preview-value">${expiryDateStr}까지</span>
+                </div>
+                <div class="cert-preview-item" style="border-top: 2px solid var(--border-color); margin-top: 8px; padding-top: 12px;">
+                    <span class="cert-preview-label">발급 소요 시간</span>
+                    <span class="cert-preview-value" style="color: var(--primary-light); font-weight: 700;">${duration.toFixed(2)}초</span>
+                </div>
+            `;
+
+            issueForm.style.display = 'none';
+            progressSteps.classList.remove('show');
+            successScreen.classList.add('show');
+        }
+
+        // 에러 메시지 표시
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        // 초기 상태: 버튼 비활성화
+        submitButton.disabled = true;
+    </script>
+</body>
+</html>
+

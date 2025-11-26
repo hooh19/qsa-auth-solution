@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ATON - 양자암호 기반 보안 로그인</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0066cc;
+            --primary-dark: #004499;
+            --primary-light: #3385d6;
+            --secondary-color: #4a90e2;
+            --accent-color: #ff6b6b;
+            --text-dark: #1a1a1a;
+            --text-light: #666666;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --border-color: #e0e0e0;
+            --gradient-primary: linear-gradient(135deg, #0066cc 0%, #4a90e2 100%);
+            --gradient-hero: linear-gradient(135deg, #0066cc 0%, #3385d6 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gradient-hero);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-white);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: var(--gradient-primary);
+            padding: 32px 30px 28px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-image {
+            height: 52px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-weight: 300;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+
+        .quantum-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .welcome-text {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome-text h2 {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .welcome-text p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            padding-left: 50px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--bg-light);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-white);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .login-button:hover::before,
+        .login-button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .login-button:active {
+            transform: scale(0.98);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .button-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-timer {
+            display: none;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .auth-timer.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-timer-value {
+            font-weight: 600;
+            color: var(--primary-light);
+            font-size: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .quantum-info {
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(0, 102, 204, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .quantum-info-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quantum-info-text {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .footer-links {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .footer-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .certificate-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .certificate-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-light);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .certificate-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(0, 102, 204, 0.05);
+            transform: translateX(4px);
+        }
+
+        .certificate-item.selected {
+            border-color: var(--primary-color);
+            background: rgba(0, 102, 204, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+        }
+
+        .certificate-icon {
+            font-size: 2rem;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .certificate-info {
+            flex: 1;
+        }
+
+        .certificate-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .certificate-details {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .certificate-type {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 4px;
+            padding: 2px 8px;
+            background: rgba(0, 102, 204, 0.1);
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .certificate-item[data-type="PQC"] .certificate-type {
+            color: var(--primary-light);
+            background: rgba(51, 133, 214, 0.1);
+        }
+
+        .certificate-check {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .certificate-item.selected .certificate-check {
+            opacity: 1;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-button.loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .login-button.loading .button-text {
+            opacity: 0.7;
+        }
+
+        .error-message {
+            display: none;
+            padding: 12px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                border-radius: 20px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .login-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo-container">
+                <img src="aton-logo.png" alt="ATON" class="logo-image" onerror="this.style.display='none'">
+             
+            </div>
+            <div class="tagline">Quantum Safe Guard</div>
+            <div class="quantum-badge">🔐 양자암호 기반 보안</div>
+        </div>
+
+        <div class="login-body">
+            <div class="welcome-text">
+                <h2>인증서 로그인</h2>
+                <p>양자암호 인증서를 선택하여 접속하세요</p>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                인증서를 선택해주세요.
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="certificateSelect">인증서 선택</label>
+                    <div class="certificate-list" id="certificateList">
+                        <div class="certificate-item" data-cert="cert1" data-type="RSA">
+                            <div class="certificate-icon">🔐</div>
+                            <div class="certificate-info">
+                                <div class="certificate-name">개인 인증서</div>
+                                <div class="certificate-details">홍길동 | 유효기간: 2025.12.31</div>
+                                <div class="certificate-type">RSA 인증서</div>
+                            </div>
+                            <div class="certificate-check">✓</div>
+                        </div>
+                        <div class="certificate-item" data-cert="cert2" data-type="PQC">
+                            <div class="certificate-icon">🔐</div>
+                            <div class="certificate-info">
+                                <div class="certificate-name">양자암호 인증서</div>
+                                <div class="certificate-details">홍길동 | 유효기간: 2026.12.31</div>
+                                <div class="certificate-type">PQC 인증서</div>
+                            </div>
+                            <div class="certificate-check">✓</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedCertificate" required>
+                </div>
+
+                <div class="form-group" id="pinGroup" style="display: none;">
+                    <label class="form-label" for="certificatePin">인증서 PIN</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔑</span>
+                        <input 
+                            type="password" 
+                            id="certificatePin" 
+                            class="form-input" 
+                            placeholder="인증서 PIN을 입력하세요"
+                            maxlength="6"
+                            autocomplete="off"
+                        >
+                        <button type="button" class="password-toggle" id="pinToggle">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-button" id="loginButton" disabled>
+                    <span class="loading-spinner"></span>
+                    <span class="button-text">인증서로 로그인</span>
+                </button>
+                <div class="auth-timer" id="authTimer">
+                    인증 시간: <span class="auth-timer-value" id="authTimerValue">0.00</span>초
+                </div>
+            </form>
+
+            <div class="quantum-info">
+                <div class="quantum-info-title">
+                    <span>🛡️</span>
+                    <span>양자암호 보안 기술</span>
+                </div>
+                <div class="quantum-info-text">
+                    ATON은 Post-Quantum Cryptography(PQC) 알고리즘을 사용하여 
+                    양자 컴퓨터 시대에도 안전한 인증을 제공합니다.
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <a href="aton-certificate-issue.html">인증서 발급</a>
+                <span>|</span>
+                <a href="#">인증서 갱신</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 인증서 선택 기능
+        const certificateItems = document.querySelectorAll('.certificate-item');
+        const selectedCertificateInput = document.getElementById('selectedCertificate');
+        const pinGroup = document.getElementById('pinGroup');
+        const certificatePin = document.getElementById('certificatePin');
+        const loginButton = document.getElementById('loginButton');
+        const pinToggle = document.getElementById('pinToggle');
+
+        // 인증서 선택 이벤트
+        certificateItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // 기존 선택 해제
+                certificateItems.forEach(cert => cert.classList.remove('selected'));
+                
+                // 현재 항목 선택
+                item.classList.add('selected');
+                const certId = item.getAttribute('data-cert');
+                selectedCertificateInput.value = certId;
+                
+                // PIN 입력 필드 표시
+                pinGroup.style.display = 'block';
+                certificatePin.focus();
+                
+                // 로그인 버튼 활성화
+                loginButton.disabled = false;
+                
+                // 에러 메시지 숨기기
+                errorMessage.classList.remove('show');
+            });
+        });
+
+        // PIN 표시/숨김 토글
+        pinToggle.addEventListener('click', () => {
+            const type = certificatePin.getAttribute('type') === 'password' ? 'text' : 'password';
+            certificatePin.setAttribute('type', type);
+            pinToggle.textContent = type === 'password' ? '👁️' : '🙈';
+        });
+
+        // PIN 입력 시 실시간 검증
+        certificatePin.addEventListener('input', (e) => {
+            const pin = e.target.value;
+            if (pin.length >= 4 && selectedCertificateInput.value) {
+                // 4자리 이상 입력 시 로그인 버튼 활성화
+                loginButton.disabled = false;
+            } else if (!selectedCertificateInput.value) {
+                loginButton.disabled = true;
+            }
+        });
+
+        // 로그인 폼 처리
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const authTimer = document.getElementById('authTimer');
+        const authTimerValue = document.getElementById('authTimerValue');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const selectedCert = selectedCertificateInput.value;
+            const pin = certificatePin.value;
+
+            // 에러 메시지 숨기기
+            errorMessage.classList.remove('show');
+
+            // 입력 검증
+            if (!selectedCert) {
+                showError('인증서를 선택해주세요.');
+                return;
+            }
+
+            if (!pin || pin.length < 4) {
+                showError('인증서 PIN을 4자리 이상 입력해주세요.');
+                certificatePin.focus();
+                return;
+            }
+
+            // 인증서 타입 확인
+            const certItem = document.querySelector(`[data-cert="${selectedCert}"]`);
+            const certType = certItem.getAttribute('data-type');
+            const authDuration = certType === 'PQC' ? 0.1 : 0.2; // PQC: 0.1초, RSA: 0.2초
+
+            // 로딩 상태
+            loginButton.classList.add('loading');
+            loginButton.disabled = true;
+
+            // 타이머 시작
+            startAuthTimer(authDuration);
+
+            // 양자암호 기반 인증서 인증 시뮬레이션
+            try {
+                await simulateCertificateAuth(selectedCert, pin, authDuration);
+                
+                // 로그인 성공
+                setTimeout(() => {
+                    showSuccessPage(authDuration);
+                }, authDuration * 1000);
+                
+            } catch (error) {
+                // 로그인 실패
+                stopAuthTimer();
+                loginButton.classList.remove('loading');
+                loginButton.disabled = false;
+                showError(error.message || '인증서 인증에 실패했습니다.');
+                certificatePin.value = '';
+                certificatePin.focus();
+            }
+        });
+
+        // 인증 타이머 시작
+        let timerInterval = null;
+        function startAuthTimer(duration) {
+            authTimer.classList.add('show');
+            let elapsed = 0;
+            const interval = 10; // 10ms마다 업데이트
+            const totalSteps = Math.ceil(duration * 1000 / interval);
+            const increment = duration / totalSteps;
+
+            // 기존 타이머가 있으면 정리
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            authTimerValue.textContent = '0.00';
+            
+            timerInterval = setInterval(() => {
+                elapsed += increment;
+                if (elapsed >= duration) {
+                    elapsed = duration;
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                authTimerValue.textContent = elapsed.toFixed(2);
+            }, interval);
+        }
+
+        // 인증 타이머 중지
+        function stopAuthTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            authTimer.classList.remove('show');
+        }
+
+        // 양자암호 인증서 인증 시뮬레이션
+        function simulateCertificateAuth(certId, pin, duration) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // 데모용: PIN이 123456 또는 1111이면 성공
+                    if (pin === '123456' || pin === '1111') {
+                        resolve({ 
+                            success: true, 
+                            token: 'quantum-cert-token-' + Date.now(),
+                            certificate: certId
+                        });
+                    } else {
+                        reject(new Error('인증서 PIN이 올바르지 않습니다.'));
+                    }
+                }, duration * 1000); // 인증서 타입에 따른 처리 시간
+            });
+        }
+
+        // 에러 메시지 표시
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            
+            // 입력 필드 흔들기 효과
+            loginForm.style.animation = 'shake 0.5s ease';
+            setTimeout(() => {
+                loginForm.style.animation = '';
+            }, 500);
+        }
+
+        // 성공 페이지 표시
+        function showSuccessPage(authDuration) {
+            const selectedCert = selectedCertificateInput.value;
+            const certItem = document.querySelector(`[data-cert="${selectedCert}"]`);
+            const certName = certItem.querySelector('.certificate-name').textContent;
+            const certType = certItem.getAttribute('data-type');
+            const certDetails = certItem.querySelector('.certificate-details').textContent;
+            const authTime = new Date().toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            document.body.innerHTML = `
+                <div class="login-container" style="animation: slideUp 0.5s ease;">
+                    <div class="login-header">
+                        <div class="logo-container">
+                            <img src="aton-logo.png" alt="ATON" class="logo-image" onerror="this.style.display='none'">
+                            <div class="logo">ATON</div>
+                        </div>
+                        <div class="tagline">Quantum Safe Authentication</div>
+                    </div>
+                    <div class="login-body" style="text-align: center; padding: 60px 30px;">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                        <h2 style="font-size: 1.5rem; color: var(--text-dark); margin-bottom: 10px;">
+                            로그인 성공
+                        </h2>
+                        <p style="color: var(--text-light); margin-bottom: 30px;">
+                            ${certType === 'PQC' ? '양자암호' : 'RSA'} 인증이 완료되었습니다.
+                        </p>
+                        
+                        <div class="certificate-item" style="margin: 20px 0; cursor: default; pointer-events: none;">
+                            <div class="certificate-icon">🔐</div>
+                            <div class="certificate-info" style="text-align: left;">
+                                <div class="certificate-name">${certName}</div>
+                                <div class="certificate-details">${certDetails}</div>
+                                <div class="certificate-type">${certType === 'PQC' ? 'PQC 인증서' : 'RSA 인증서'}</div>
+                                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                                    <div style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 4px;">인증 시간</div>
+                                    <div style="font-size: 0.9rem; font-weight: 600; color: var(--primary-color);">
+                                        ${authTime}
+                                    </div>
+                                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-color);">
+                                        <div style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 4px;">인증 소요 시간</div>
+                                        <div style="font-size: 0.9rem; font-weight: 600; color: var(--primary-light);">
+                                            ${authDuration.toFixed(2)}초
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quantum-info">
+                            <div class="quantum-info-title">
+                                <span>🔐</span>
+                                <span>보안 세션 활성화</span>
+                            </div>
+                            <div class="quantum-info-text">
+                                ${certType === 'PQC' 
+                                    ? 'PQC 알고리즘으로 보호된 안전한 세션이 시작되었습니다.' 
+                                    : 'RSA 알고리즘으로 보호된 안전한 세션이 시작되었습니다.'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // PIN 입력 필드 포커스 효과
+        certificatePin.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'scale(1.02)';
+        });
+        
+        certificatePin.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'scale(1)';
+        });
+    </script>
+</body>
+</html>
+

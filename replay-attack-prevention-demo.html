@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QSA - 서버 시간 동기화 기반 Replay Attack 방어</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0066cc;
+            --primary-dark: #004499;
+            --primary-light: #3385d6;
+            --secondary-color: #4a90e2;
+            --accent-color: #ff6b6b;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --text-dark: #1a1a1a;
+            --text-light: #666666;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --border-color: #e0e0e0;
+            --gradient-primary: linear-gradient(135deg, #0066cc 0%, #4a90e2 100%);
+            --gradient-hero: linear-gradient(135deg, #0066cc 0%, #3385d6 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--gradient-primary);
+            padding: 40px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .flow-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .client-box, .server-box {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+        }
+
+        .client-box {
+            border-color: var(--primary-color);
+        }
+
+        .server-box {
+            border-color: var(--secondary-color);
+        }
+
+        .box-header {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        .step-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active {
+            background: rgba(0, 102, 204, 0.1);
+            border-left-color: var(--success-color);
+            transform: translateX(5px);
+        }
+
+        .step-item.completed {
+            background: rgba(40, 167, 69, 0.1);
+            border-left-color: var(--success-color);
+        }
+
+        .step-item.error {
+            background: rgba(255, 107, 107, 0.1);
+            border-left-color: var(--accent-color);
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+
+        .step-detail {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .time-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .time-diff {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .time-diff.positive {
+            color: var(--warning-color);
+        }
+
+        .time-diff.negative {
+            color: #ffeb3b;
+        }
+
+        .control-panel {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-white);
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-light);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-success {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #856404;
+        }
+
+        .status-error {
+            background: rgba(255, 107, 107, 0.2);
+            color: var(--accent-color);
+        }
+
+        .arrow {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin: 10px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .info-box {
+            background: rgba(0, 102, 204, 0.1);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: var(--text-light);
+        }
+
+        .info-box li {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .flow-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+
+            .time-display {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ 서버 시간 동기화 기반 Replay Attack 방어</h1>
+            <p>JWT 토큰 + 타임스탬프 검증을 통한 재전송 공격 차단 시뮬레이션</p>
+        </div>
+
+        <div class="content">
+            <!-- 시간 동기화 섹션 -->
+            <div class="section">
+                <h2 class="section-title">1단계: 로그인 시 서버 시간 동기화</h2>
+                
+                <div class="time-display">
+                    <div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">서버 시간</div>
+                        <div class="time-value" id="serverTime">1709123456789</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">클라이언트 시간</div>
+                        <div class="time-value" id="clientTime">1709123456789</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">시간 차이 (Offset)</div>
+                        <div class="time-value" id="timeOffset">0 ms</div>
+                    </div>
+                </div>
+
+                <div class="flow-container">
+                    <div class="client-box">
+                        <div class="box-header">📱 클라이언트 (WebSafeBox)</div>
+                        <div id="clientSteps">
+                            <div class="step-item">
+                                <div class="step-title">1. 로그인 요청</div>
+                                <div class="step-detail">POST /api/auth/login</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">2. 서버 시간 수신 대기</div>
+                                <div class="step-detail">serverTime: <span id="receivedServerTime">-</span></div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">3. 시간 보정값 계산</div>
+                                <div class="step-detail">timeOffset = serverTime - clientTime</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">4. 보정값 저장</div>
+                                <div class="step-detail">WSB 메모리에 timeOffset 저장</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="server-box">
+                        <div class="box-header">🖥️ 서버 (APIAuth Server)</div>
+                        <div id="serverSteps">
+                            <div class="step-item">
+                                <div class="step-title">1. 인증 처리</div>
+                                <div class="step-detail">사용자 인증 및 JWT 토큰 생성</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">2. 서버 시간 포함 응답</div>
+                                <div class="step-detail">{ token, serverTime: Date.now() }</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="btnLogin" onclick="simulateLogin()">
+                        🔐 로그인 시뮬레이션
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetSimulation()">
+                        🔄 초기화
+                    </button>
+                </div>
+            </div>
+
+            <!-- API 호출 섹션 -->
+            <div class="section">
+                <h2 class="section-title">2단계: API 호출 시 타임스탬프 서명</h2>
+                
+                <div class="flow-container">
+                    <div class="client-box">
+                        <div class="box-header">📱 클라이언트 (API 요청)</div>
+                        <div id="apiClientSteps">
+                            <div class="step-item">
+                                <div class="step-title">1. 서버 시간 계산</div>
+                                <div class="step-detail">serverTime = Date.now() + timeOffset</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">2. 요청 데이터 구성</div>
+                                <div class="step-detail" id="requestData">-</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">3. 서명 생성</div>
+                                <div class="step-detail">sign(JSON.stringify(data), privateKey)</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">4. API 요청 전송</div>
+                                <div class="step-detail">POST /api/transfer { ...data, signature }</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="server-box">
+                        <div class="box-header">🖥️ 서버 (검증)</div>
+                        <div id="apiServerSteps">
+                            <div class="step-item">
+                                <div class="step-title">1. JWT 토큰 검증</div>
+                                <div class="step-detail">토큰 유효성 및 만료 시간 확인</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">2. 서명 검증</div>
+                                <div class="step-detail">Public Key로 서명값 검증</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">3. 타임스탬프 검증</div>
+                                <div class="step-detail">|serverTime - timestamp| ≤ 30초?</div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-title">4. 검증 결과</div>
+                                <div class="step-detail" id="verificationResult">대기 중...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="btnApiCall" onclick="simulateApiCall()" disabled>
+                        📤 API 호출 시뮬레이션
+                    </button>
+                    <button class="btn btn-secondary" onclick="simulateTimeSkew()">
+                        ⚠️ 시간 오차 발생 시뮬레이션
+                    </button>
+                </div>
+            </div>
+
+            <!-- 자동 재동기화 섹션 -->
+            <div class="section">
+                <h2 class="section-title">3단계: 시간 오차 발생 시 자동 재동기화</h2>
+                
+                <div class="info-box">
+                    <h4>🔄 자동 재시도 프로세스</h4>
+                    <ul>
+                        <li>서버가 시간 오차를 감지하면 <code>419 TIME_SKEW</code> 응답 반환</li>
+                        <li>응답 본문에 현재 서버 시간 포함: <code>{ code: 'TIME_SKEW', serverTime: ... }</code></li>
+                        <li>클라이언트가 자동으로 timeOffset 재계산 및 저장</li>
+                        <li>원래 요청을 자동으로 재전송 (최대 1회)</li>
+                    </ul>
+                </div>
+
+                <div id="retrySteps" style="display: none;">
+                    <div class="flow-container">
+                        <div class="client-box">
+                            <div class="box-header">📱 클라이언트 (자동 재시도)</div>
+                            <div id="retryClientSteps">
+                                <div class="step-item">
+                                    <div class="step-title">1. TIME_SKEW 에러 감지</div>
+                                    <div class="step-detail">status: 419, code: 'TIME_SKEW'</div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-title">2. 서버 시간 재수신</div>
+                                    <div class="step-detail">response.serverTime 사용</div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-title">3. timeOffset 재계산</div>
+                                    <div class="step-detail">새로운 보정값으로 업데이트</div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-title">4. 자동 재시도</div>
+                                    <div class="step-detail">동일한 요청 재전송</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="server-box">
+                            <div class="box-header">🖥️ 서버 (재검증)</div>
+                            <div id="retryServerSteps">
+                                <div class="step-item">
+                                    <div class="step-title">1. 타임스탬프 재검증</div>
+                                    <div class="step-detail">동기화된 시간으로 재확인</div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-title">2. 검증 통과</div>
+                                    <div class="step-detail">✅ API 처리 성공</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 보안 특징 -->
+            <div class="section">
+                <h2 class="section-title">🔒 보안 특징</h2>
+                <div class="info-box">
+                    <h4>Replay Attack 방어 메커니즘</h4>
+                    <ul>
+                        <li><strong>타임스탬프 검증:</strong> ±30초 이내 요청만 허용 (설정 가능)</li>
+                        <li><strong>서명 검증:</strong> 타임스탬프가 서명에 포함되어 위변조 불가</li>
+                        <li><strong>자동 재동기화:</strong> 시간 오차 발생 시 사용자 개입 없이 자동 복구</li>
+                        <li><strong>Stateless:</strong> 서버 저장소 불필요, 확장성 확보</li>
+                        <li><strong>클라이언트 최소화:</strong> 기존 세션 방식과 동일한 수준의 구현 복잡도</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 시뮬레이션 상태
+        let isLoggedIn = false;
+        let timeOffset = 0;
+        let serverTime = Date.now();
+        let clientTime = Date.now();
+
+        // 시간 업데이트
+        function updateTimeDisplay() {
+            clientTime = Date.now();
+            serverTime = clientTime + timeOffset;
+            
+            document.getElementById('serverTime').textContent = serverTime;
+            document.getElementById('clientTime').textContent = clientTime;
+            
+            const offsetText = timeOffset >= 0 ? `+${timeOffset} ms` : `${timeOffset} ms`;
+            document.getElementById('timeOffset').textContent = offsetText;
+            document.getElementById('timeOffset').className = 'time-value ' + 
+                (timeOffset > 0 ? 'positive' : timeOffset < 0 ? 'negative' : '');
+        }
+
+        // 로그인 시뮬레이션
+        async function simulateLogin() {
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+
+            // 클라이언트 단계 활성화
+            const clientSteps = document.querySelectorAll('#clientSteps .step-item');
+            const serverSteps = document.querySelectorAll('#serverSteps .step-item');
+
+            // 1. 로그인 요청
+            clientSteps[0].classList.add('active');
+            await sleep(800);
+            clientSteps[0].classList.remove('active');
+            clientSteps[0].classList.add('completed');
+
+            // 서버 인증 처리
+            serverSteps[0].classList.add('active');
+            await sleep(600);
+            serverSteps[0].classList.remove('active');
+            serverSteps[0].classList.add('completed');
+
+            // 2. 서버 시간 수신
+            serverSteps[1].classList.add('active');
+            const actualServerTime = Date.now();
+            document.getElementById('receivedServerTime').textContent = actualServerTime;
+            await sleep(500);
+            serverSteps[1].classList.remove('active');
+            serverSteps[1].classList.add('completed');
+
+            clientSteps[1].classList.add('active');
+            await sleep(500);
+            clientSteps[1].classList.remove('active');
+            clientSteps[1].classList.add('completed');
+
+            // 3. 시간 보정값 계산
+            clientSteps[2].classList.add('active');
+            const currentClientTime = Date.now();
+            timeOffset = actualServerTime - currentClientTime;
+            updateTimeDisplay();
+            await sleep(600);
+            clientSteps[2].classList.remove('active');
+            clientSteps[2].classList.add('completed');
+
+            // 4. 보정값 저장
+            clientSteps[3].classList.add('active');
+            await sleep(400);
+            clientSteps[3].classList.remove('active');
+            clientSteps[3].classList.add('completed');
+
+            isLoggedIn = true;
+            document.getElementById('btnApiCall').disabled = false;
+            btn.textContent = '✅ 로그인 완료';
+        }
+
+        // API 호출 시뮬레이션
+        async function simulateApiCall() {
+            const btn = document.getElementById('btnApiCall');
+            btn.disabled = true;
+
+            const clientSteps = document.querySelectorAll('#apiClientSteps .step-item');
+            const serverSteps = document.querySelectorAll('#apiServerSteps .step-item');
+
+            // 모든 단계 초기화
+            clientSteps.forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+            serverSteps.forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+
+            // 클라이언트: 서버 시간 계산
+            clientSteps[0].classList.add('active');
+            const calculatedServerTime = Date.now() + timeOffset;
+            await sleep(500);
+            clientSteps[0].classList.remove('active');
+            clientSteps[0].classList.add('completed');
+
+            // 클라이언트: 요청 데이터 구성
+            clientSteps[1].classList.add('active');
+            const requestData = {
+                accountId: '12345',
+                amount: 10000,
+                timestamp: calculatedServerTime
+            };
+            document.getElementById('requestData').textContent = JSON.stringify(requestData, null, 2);
+            await sleep(600);
+            clientSteps[1].classList.remove('active');
+            clientSteps[1].classList.add('completed');
+
+            // 클라이언트: 서명 생성
+            clientSteps[2].classList.add('active');
+            await sleep(700);
+            clientSteps[2].classList.remove('active');
+            clientSteps[2].classList.add('completed');
+
+            // 클라이언트: API 요청 전송
+            clientSteps[3].classList.add('active');
+            await sleep(500);
+            clientSteps[3].classList.remove('active');
+            clientSteps[3].classList.add('completed');
+
+            // 서버: JWT 토큰 검증
+            serverSteps[0].classList.add('active');
+            await sleep(600);
+            serverSteps[0].classList.remove('active');
+            serverSteps[0].classList.add('completed');
+
+            // 서버: 서명 검증
+            serverSteps[1].classList.add('active');
+            await sleep(700);
+            serverSteps[1].classList.remove('active');
+            serverSteps[1].classList.add('completed');
+
+            // 서버: 타임스탬프 검증
+            serverSteps[2].classList.add('active');
+            const currentServerTime = Date.now();
+            const timeDiff = Math.abs(currentServerTime - calculatedServerTime);
+            const isValid = timeDiff <= 30000; // 30초
+            await sleep(600);
+            serverSteps[2].classList.remove('active');
+            serverSteps[2].classList.add('completed');
+
+            // 서버: 검증 결과
+            serverSteps[3].classList.add('active');
+            if (isValid) {
+                document.getElementById('verificationResult').innerHTML = 
+                    `<span class="status-badge status-success">✅ 검증 통과</span><br>` +
+                    `시간 차이: ${timeDiff}ms (허용 범위: 30초)`;
+            } else {
+                document.getElementById('verificationResult').innerHTML = 
+                    `<span class="status-badge status-error">❌ 검증 실패</span><br>` +
+                    `시간 차이: ${timeDiff}ms (허용 범위 초과)`;
+            }
+            await sleep(500);
+            serverSteps[3].classList.remove('active');
+            serverSteps[3].classList.add('completed');
+
+            btn.disabled = false;
+        }
+
+        // 시간 오차 발생 시뮬레이션
+        async function simulateTimeSkew() {
+            // 시간 오차 인위적으로 생성
+            const oldOffset = timeOffset;
+            timeOffset = 60000; // 1분 오차
+            updateTimeDisplay();
+
+            // API 호출 시뮬레이션
+            await simulateApiCall();
+
+            // 재동기화 프로세스 표시
+            document.getElementById('retrySteps').style.display = 'block';
+            const retryClientSteps = document.querySelectorAll('#retryClientSteps .step-item');
+            const retryServerSteps = document.querySelectorAll('#retryServerSteps .step-item');
+
+            // 모든 단계 초기화
+            retryClientSteps.forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+            retryServerSteps.forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+
+            // TIME_SKEW 에러 감지
+            retryClientSteps[0].classList.add('active');
+            await sleep(500);
+            retryClientSteps[0].classList.remove('active');
+            retryClientSteps[0].classList.add('completed');
+
+            // 서버 시간 재수신
+            retryClientSteps[1].classList.add('active');
+            const newServerTime = Date.now();
+            await sleep(500);
+            retryClientSteps[1].classList.remove('active');
+            retryClientSteps[1].classList.add('completed');
+
+            // timeOffset 재계산
+            retryClientSteps[2].classList.add('active');
+            timeOffset = newServerTime - Date.now();
+            updateTimeDisplay();
+            await sleep(600);
+            retryClientSteps[2].classList.remove('active');
+            retryClientSteps[2].classList.add('completed');
+
+            // 자동 재시도
+            retryClientSteps[3].classList.add('active');
+            await sleep(500);
+            retryClientSteps[3].classList.remove('active');
+            retryClientSteps[3].classList.add('completed');
+
+            // 서버 재검증
+            retryServerSteps[0].classList.add('active');
+            await sleep(600);
+            retryServerSteps[0].classList.remove('active');
+            retryServerSteps[0].classList.add('completed');
+
+            retryServerSteps[1].classList.add('active');
+            await sleep(500);
+            retryServerSteps[1].classList.remove('active');
+            retryServerSteps[1].classList.add('completed');
+        }
+
+        // 초기화
+        function resetSimulation() {
+            isLoggedIn = false;
+            timeOffset = 0;
+            updateTimeDisplay();
+
+            // 모든 단계 초기화
+            document.querySelectorAll('.step-item').forEach(item => {
+                item.classList.remove('active', 'completed', 'error');
+            });
+
+            document.getElementById('btnLogin').disabled = false;
+            document.getElementById('btnLogin').textContent = '🔐 로그인 시뮬레이션';
+            document.getElementById('btnApiCall').disabled = true;
+            document.getElementById('receivedServerTime').textContent = '-';
+            document.getElementById('requestData').textContent = '-';
+            document.getElementById('verificationResult').textContent = '대기 중...';
+            document.getElementById('retrySteps').style.display = 'none';
+        }
+
+        // 유틸리티
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 시간 표시 업데이트 (1초마다)
+        setInterval(updateTimeDisplay, 1000);
+        updateTimeDisplay();
+    </script>
+</body>
+</html>
+
+
